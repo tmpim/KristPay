@@ -58,4 +58,8 @@ public class KristPay {
 		kristClientManager = new KristClientManager();
 		new Thread(kristClientManager).start();
 	}
+	
+	public boolean isUp() {
+		return kristClientManager != null && kristClientManager.getKristClient() != null && kristClientManager.isUp();
+	}
 }

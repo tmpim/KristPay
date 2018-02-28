@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 @Getter
 public class KristClientManager implements Runnable {
 	private KristClient kristClient;
+	private boolean up = false;
 	
 	@Override
 	public void run() {
@@ -20,8 +21,9 @@ public class KristClientManager implements Runnable {
 	}
 	
 	protected void clientClosed() {
+		up = false;
 		kristClient = null;
-		startClient();
+		reconnect();
 	}
 	
 	protected void startClient() {
@@ -33,27 +35,28 @@ public class KristClientManager implements Runnable {
 			
 			if (websocketURL.isPresent()) {
 				kristClient = new KristClient(this, new URI(websocketURL.get()));
-				try {
-					kristClient.connectBlocking();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
+				kristClient.connect();
+				up = true;
 			} else {
-				KristPay.INSTANCE.getLogger().error("Unable to get websocket URL");
+				KristPay.INSTANCE.getLogger().error("Unable to get websocket URL. Krist node appears to be down.");
+				up = false;
 				reconnect();
 			}
 		} catch (UnirestException e) {
-			KristPay.INSTANCE.getLogger().error("Unable to get websocket URL", e);
+			KristPay.INSTANCE.getLogger().error("Unable to get websocket URL. Krist node appears to be down.");
+			KristPay.INSTANCE.getLogger().debug("", e);
+			up = false;
 			reconnect();
 		} catch (URISyntaxException e) {
 			KristPay.INSTANCE.getLogger().error("Unable to parse websocket URI", e);
+			up = false;
 			reconnect();
 		}
 	}
 	
 	private void reconnect() {
 		Task.builder().execute(this::startClient)
-			.async().delay(2500, TimeUnit.MILLISECONDS)
+			.async().delay(2000, TimeUnit.MILLISECONDS)
 			.name("KristPay - Reconnect attempt")
 			.submit(KristPay.INSTANCE);
 	}

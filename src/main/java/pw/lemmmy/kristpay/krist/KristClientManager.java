@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 public class KristClientManager implements Runnable {
 	private KristClient kristClient;
 	private boolean up = false;
+	private boolean stopping = false;
 	
 	@Override
 	public void run() {
@@ -23,12 +24,21 @@ public class KristClientManager implements Runnable {
 	protected void clientClosed() {
 		up = false;
 		kristClient = null;
-		reconnect();
+		
+		if (!stopping) reconnect();
 	}
 	
-	protected void startClient() {
+	public void stopClient() {
+		stopping = true;
+		up = false;
+		kristClient.close();
+	}
+	
+	public void startClient() {
+		stopping = false;
+		
 		try {
-			KristPay.INSTANCE.getLogger().info("Master address is " + KristPay.INSTANCE.getConfig().getMasterWallet().getAddress());
+			KristPay.INSTANCE.getLogger().info("Master address is " + KristPay.INSTANCE.getMasterWallet().getAddress());
 			KristPay.INSTANCE.getLogger().info("Websocket connecting to krist node " + KristAPI.getKristNode());
 			
 			Optional<String> websocketURL = KristAPI.getWebsocketURL("test");

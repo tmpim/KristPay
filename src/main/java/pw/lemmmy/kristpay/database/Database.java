@@ -4,6 +4,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import org.spongepowered.api.scheduler.Task;
 import pw.lemmmy.kristpay.KristPay;
 import pw.lemmmy.kristpay.economy.KristAccount;
 import pw.lemmmy.kristpay.krist.KristAPI;
@@ -16,11 +17,15 @@ import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Database {
 	private File dbFile;
 	
 	private Map<UUID, KristAccount> accounts = new HashMap<>();
+	
+	private Lock dbLock = new ReentrantLock();
 	
 	public Database(File dbFile) {
 		this.dbFile = dbFile;
@@ -37,6 +42,12 @@ public class Database {
 		} catch (IOException e) {
 			KristPay.INSTANCE.getLogger().error("Error creating KristPay database", e);
 		}
+	}
+	
+	public int getTotalDistributedKrist() {
+		return accounts.values().stream()
+			.mapToInt(KristAccount::getBalance)
+			.sum();
 	}
 	
 	public void load() throws IOException, JSONException {
@@ -59,9 +70,49 @@ public class Database {
 			// TODO: key as uuid or string?
 			accounts.put(UUID.fromString(owner), account);
 		});
+		
+		accounts.values().stream()
+			.filter(KristAccount::isNeedsSave)
+			.findFirst()
+			.ifPresent(ignored -> save());
+	}
+	
+	private void saveFile() throws IOException {
+		JSONObject data = new JSONObject();
+		JSONArray accountsJSON = new JSONArray();
+		
+		accounts.forEach((uuid, kristAccount) -> accountsJSON.put(new JSONObject()
+			.put("owner", kristAccount.getOwner())
+			.put("balance", kristAccount.getBalance())
+			.put("depositPassword", kristAccount.getDepositWallet().getPrivatekey())
+		));
+		
+		data.put("accounts", accountsJSON);
+		
+		PrintWriter printWriter = new PrintWriter(dbFile);
+		printWriter.write(data.toString(4));
+		printWriter.close();
+	}
+	
+	public void save() {
+		Task.builder()
+			.execute(() -> {
+				dbLock.lock();
+				
+				try {
+					saveFile();
+				} catch (IOException e) {
+					KristPay.INSTANCE.getLogger().error("Error saving KristPay database", e);
+				} finally {
+					dbLock.unlock();
+				}
+			})
+			.async()
+			.name("KristPay - Saving database")
+			.submit(KristPay.INSTANCE);
 	}
 	
 	public void syncWallets() {
-	
+		accounts.forEach((uuid, kristAccount) -> kristAccount.getDepositWallet().syncWithNode(success -> {}));
 	}
 }

@@ -6,6 +6,7 @@ import ninja.leaping.configurate.objectmapping.serialize.ConfigSerializable;
 
 @ConfigSerializable
 @Getter
-public class EconomyConfig {
-	@Setting private int startingBalance = 100;
+public class ConfigNode {
+	// TODO: change to public krist node before release.
+	@Setting private String address = "http://localhost:3002";
 }

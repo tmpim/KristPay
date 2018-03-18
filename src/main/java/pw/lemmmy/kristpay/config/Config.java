@@ -7,7 +7,7 @@ import ninja.leaping.configurate.objectmapping.serialize.ConfigSerializable;
 @ConfigSerializable
 @Getter
 public class Config {
-	@Setting private MasterWalletConfig masterWallet = new MasterWalletConfig();
-	@Setting private NodeConfig node = new NodeConfig();
-	@Setting private EconomyConfig economy = new EconomyConfig();
+	@Setting private ConfigMasterWallet masterWallet = new ConfigMasterWallet();
+	@Setting private ConfigNode node = new ConfigNode();
+	@Setting private ConfigEconomy economy = new ConfigEconomy();
 }

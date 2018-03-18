@@ -69,7 +69,6 @@ public class Database {
 			Wallet wallet = new Wallet(privatekey);
 			KristAccount account = new KristAccount(owner, wallet, balance);
 			
-			// TODO: key as uuid or string?
 			accounts.put(owner, account);
 		});
 		

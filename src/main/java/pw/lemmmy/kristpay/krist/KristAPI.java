@@ -26,6 +26,20 @@ public class KristAPI {
 		return Optional.of(body.getString("url"));
 	}
 	
+	public static Optional<KristTransaction> makeTransaction(String privatekey, String to, int amount, String metadata) throws UnirestException {
+		HttpResponse<JsonNode> response = Unirest.post(getKristNode() + "/transactions")
+			.field("privatekey", privatekey)
+			.field("to", to)
+			.field("amount", amount)
+			.field("metadata", metadata)
+			.asJson();
+		
+		JSONObject body = response.getBody().getObject();
+		
+		if (!body.getBoolean("ok")) return Optional.empty();
+		return Optional.of(KristTransaction.fromJSON(body.getJSONObject("transaction")));
+	}
+	
 	// https://github.com/Lignum/JKrist
 	public static char byteToHexChar(int inp) {
 		int b = 48 + inp / 7;

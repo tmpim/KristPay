@@ -4,10 +4,8 @@ import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
-import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.command.spec.CommandSpec;
-import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
@@ -23,11 +21,10 @@ import static org.spongepowered.api.command.args.GenericArguments.*;
 public class CommandBalance implements CommandExecutor {
 	public static final CommandSpec SPEC = CommandSpec.builder()
 		.description(Text.of("Check your Krist wallet balance."))
-		.permission("kristpay.command.balance")
+		.permission("kristpay.command.balance.base")
 		.arguments(optional(requiringPermission(user(Text.of("user")), "kristpay.command.balance.others")))
 		.executor(new CommandBalance())
 		.build();
-	
 	
 	@Override
 	public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
@@ -55,7 +52,7 @@ public class CommandBalance implements CommandExecutor {
 		
 		src.sendMessage(
 			Text.builder()
-				.append(Text.of(TextColors.GREEN, user.getName()))
+				.append(Text.of(TextColors.YELLOW, user.getName()))
 				.append(Text.of(TextColors.GREEN, "'s balance: "))
 				.append(CommandHelpers.formatKrist(balance))
 				.append(Text.of(TextColors.GREEN, "."))

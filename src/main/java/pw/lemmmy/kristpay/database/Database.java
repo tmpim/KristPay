@@ -8,7 +8,6 @@ import org.json.JSONTokener;
 import org.spongepowered.api.scheduler.Task;
 import pw.lemmmy.kristpay.KristPay;
 import pw.lemmmy.kristpay.economy.KristAccount;
-import pw.lemmmy.kristpay.krist.KristAPI;
 import pw.lemmmy.kristpay.krist.Wallet;
 
 import java.io.File;
@@ -17,7 +16,6 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 

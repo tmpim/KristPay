@@ -5,9 +5,7 @@ import org.java_websocket.drafts.Draft_6455;
 import org.java_websocket.handshake.ServerHandshake;
 import org.json.JSONObject;
 import pw.lemmmy.kristpay.KristPay;
-import pw.lemmmy.kristpay.database.Database;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;

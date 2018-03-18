@@ -76,7 +76,11 @@ public class KristAccount implements UniqueAccount {
 	
 	@Override
 	public Map<Currency, TransactionResult> resetBalances(Cause cause, Set<Context> contexts) {
-		return null;
+		TransactionResult result = resetBalance(KristPay.INSTANCE.getCurrency(), cause, contexts);
+		
+		Map<Currency, TransactionResult> map = new HashMap<>();
+		map.put(KristPay.INSTANCE.getCurrency(), result);
+		return map;
 	}
 	
 	@Override
@@ -86,12 +90,19 @@ public class KristAccount implements UniqueAccount {
 	
 	@Override
 	public TransactionResult deposit(Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
-		return null;
+		return setBalance(currency, BigDecimal.valueOf(balance + amount.intValue()), cause, contexts);
 	}
 	
 	@Override
 	public TransactionResult withdraw(Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
-		return null;
+		int amt = amount.intValue();
+		int newBalance = balance - amt;
+		
+		if (newBalance < 0) {
+			return new KristTransactionResult(this, amount, contexts, ResultType.ACCOUNT_NO_FUNDS, TransactionTypes.WITHDRAW);
+		} else {
+			return setBalance(currency, BigDecimal.valueOf(newBalance), cause, contexts);
+		}
 	}
 	
 	@Override
@@ -162,6 +173,22 @@ public class KristAccount implements UniqueAccount {
 			return new KristTransferResult(to, this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.TRANSFER);
 		}
 		
-		if (balance )
+		KristAccount target = (KristAccount) to;
+		
+		if (balance - amount.intValue() < 0) {
+			// TODO: log result (failed, no funds)
+			return new KristTransferResult(to, this, currency, amount, contexts, ResultType.ACCOUNT_NO_FUNDS, TransactionTypes.TRANSFER);
+		}
+		
+		if (amount.intValue() < 0) {
+			// TODO: log result (failed, amount < 0)
+			return new KristTransferResult(to, this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.TRANSFER);
+		}
+		
+		balance -= amount.intValue();
+		target.balance += amount.intValue();
+		KristPay.INSTANCE.getDatabase().save();
+		// TODO: log result (success)
+		return new KristTransferResult(to, this, currency, amount, contexts, ResultType.SUCCESS, TransactionTypes.TRANSFER);
 	}
 }

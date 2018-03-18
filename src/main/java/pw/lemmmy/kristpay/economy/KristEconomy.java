@@ -2,11 +2,15 @@ package pw.lemmmy.kristpay.economy;
 
 import lombok.Getter;
 import lombok.val;
+import org.spongepowered.api.event.cause.Cause;
+import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.service.context.ContextCalculator;
 import org.spongepowered.api.service.economy.Currency;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.service.economy.account.Account;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
+import pw.lemmmy.kristpay.KristPay;
+import pw.lemmmy.kristpay.database.Database;
 
 import java.util.HashSet;
 import java.util.Optional;
@@ -31,22 +35,44 @@ public class KristEconomy implements EconomyService {
 	
 	@Override
 	public boolean hasAccount(UUID uuid) {
-		return false;
+		return KristPay.INSTANCE.getDatabase().getAccounts().containsKey(uuid.toString());
 	}
 	
 	@Override
 	public boolean hasAccount(String identifier) {
-		return false;
+		return KristPay.INSTANCE.getDatabase().getAccounts().containsKey(identifier);
 	}
 	
 	@Override
 	public Optional<UniqueAccount> getOrCreateAccount(UUID uuid) {
-		return null;
+		val opt = getOrCreateAccount(uuid.toString());
+		
+		return opt.isPresent()
+			   ? (opt.get() instanceof UniqueAccount ? Optional.of((UniqueAccount) opt.get()) : Optional.empty())
+			   : Optional.empty();
 	}
 	
 	@Override
 	public Optional<Account> getOrCreateAccount(String identifier) {
-		return null;
+		Database db = KristPay.INSTANCE.getDatabase();
+		
+		if (db.getAccounts().containsKey(identifier)) {
+			return Optional.of(db.getAccounts().get(identifier));
+		} else {
+			KristAccount account = new KristAccount(identifier);
+			
+			account.setBalance(
+				getDefaultCurrency(),
+				account.getDefaultBalance(getDefaultCurrency()),
+				Cause.of(EventContext.empty(), this), // TODO: ????
+				null
+			);
+			
+			db.getAccounts().put(account.getOwner(), account);
+			db.save();
+			
+			return Optional.of(account);
+		}
 	}
 	
 	@Override

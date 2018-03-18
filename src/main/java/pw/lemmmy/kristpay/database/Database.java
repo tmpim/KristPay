@@ -1,5 +1,6 @@
 package pw.lemmmy.kristpay.database;
 
+import lombok.Getter;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,7 +24,8 @@ import java.util.concurrent.locks.ReentrantLock;
 public class Database {
 	private File dbFile;
 	
-	private Map<UUID, KristAccount> accounts = new HashMap<>();
+	@Getter
+	private Map<String, KristAccount> accounts = new HashMap<>();
 	
 	private Lock dbLock = new ReentrantLock();
 	
@@ -68,7 +70,7 @@ public class Database {
 			KristAccount account = new KristAccount(owner, wallet, balance);
 			
 			// TODO: key as uuid or string?
-			accounts.put(UUID.fromString(owner), account);
+			accounts.put(owner, account);
 		});
 		
 		accounts.values().stream()

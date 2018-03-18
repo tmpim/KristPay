@@ -31,6 +31,7 @@ public class KristAccount implements UniqueAccount {
 	private boolean needsSave = false;
 	
 	public KristAccount(String owner) {
+		this.owner = owner;
 		this.depositWallet = new Wallet(Utils.generatePassword());
 		this.balance = 0;
 		needsSave = true;
@@ -125,7 +126,7 @@ public class KristAccount implements UniqueAccount {
 		int oldBalance = this.balance;
 		
 		// TODO: logging
-		System.out.println("Changing balance of " + owner + " from " + oldBalance + " to " + balance);
+		System.out.println("Changing balance of " + owner + " from " + oldBalance + " to " + amount.intValue());
 		
 		if (amount.intValue() < 0) { // balance should never be negative
 			// TODO: log result

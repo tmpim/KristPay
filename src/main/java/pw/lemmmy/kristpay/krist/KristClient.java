@@ -79,8 +79,6 @@ public class KristClient extends WebSocketClient {
 	}
 	
 	private void handleMessage(String type, JSONObject data) {
-		System.out.println(data.toString());
-		
 		switch (type) {
 			case "hello":
 				KristPay.INSTANCE.getLogger().info("Server MOTD: " + data.optString("motd", "N/A").trim());

@@ -8,9 +8,15 @@ import org.json.JSONObject;
 import pw.lemmmy.kristpay.KristPay;
 import pw.lemmmy.kristpay.Utils;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class KristAPI {
+	private static final Pattern KRIST_NAME_PATTERN = Pattern.compile("^(?:([a-z0-9-_]{1,32})@)?([a-z0-9]{1,64}\\.kst)$");
+	
 	public static String getKristNode() {
 		return KristPay.INSTANCE.getConfig().getNode().getAddress();
 	}
@@ -82,5 +88,34 @@ public class KristAPI {
 	
 	public static String makeKristWalletPrivatekey(String password) {
 		return Utils.sha256("KRISTWALLET" + password) + "-000";
+	}
+	
+	public static Optional<Map<String, String>> parseCommonMeta(String metadata) {
+		if (metadata == null || metadata.isEmpty()) return Optional.empty();
+		
+		Map<String, String> parts = new HashMap<>();
+		
+		String[] metaParts = metadata.split(";");
+		if (metaParts.length <= 0) return Optional.empty();
+		
+		Matcher nameMatcher = KRIST_NAME_PATTERN.matcher(metaParts[0]);
+		
+		if (nameMatcher.matches()) { // first meta argument is a name
+			if (nameMatcher.group(1) != null) parts.put("metaname", nameMatcher.group(1));
+			if (nameMatcher.group(2) != null) parts.put("name", nameMatcher.group(2));
+		}
+		
+		for (int i = 0; i < metaParts.length; i++) { // add the rest of the arguments
+			String metaPart = metaParts[i];
+			String[] kv = metaPart.split("=", 1);
+			
+			if (kv.length == 1) { // no key specified, use argn as key
+				parts.put(String.valueOf(i), kv[0]); // TODO: consider handling cases where the meta actually has numeric keys?
+			} else {
+				parts.put(kv[0], kv[1]);
+			}
+		}
+		
+		return Optional.of(parts);
 	}
 }

@@ -112,6 +112,11 @@ public class Database {
 	}
 	
 	public void syncWallets() {
-		accounts.forEach((uuid, kristAccount) -> kristAccount.getDepositWallet().syncWithNode(success -> {}));
+		KristPay.INSTANCE.getLogger().info("Syncing wallets.");
+		
+		accounts.forEach((uuid, kristAccount) -> kristAccount.getDepositWallet().syncWithNode(success -> {
+			if (KristPay.INSTANCE.getDepositManager() != null)
+				KristPay.INSTANCE.getDepositManager().walletSynced(kristAccount);
+		}));
 	}
 }

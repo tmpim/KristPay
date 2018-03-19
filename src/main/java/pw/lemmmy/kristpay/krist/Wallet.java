@@ -21,7 +21,10 @@ public class Wallet {
 	}
 	
 	public void syncWithNode(Consumer<Boolean> callback) {
-		if (!KristPay.INSTANCE.isUp()) callback.accept(false);
+		if (!KristPay.INSTANCE.isUp()) {
+			callback.accept(false);
+			return;
+		}
 		
 		KristPay.INSTANCE.getKristClientManager().getKristClient().getAddressBalanceAync(address, newBalance -> {
 			balance = newBalance;
@@ -30,13 +33,23 @@ public class Wallet {
 	}
 	
 	public void transfer(String to, int amount, String metadata, BiConsumer<Boolean, KristTransaction> callback) {
-		if (!KristPay.INSTANCE.isUp()) callback.accept(false, null);
+		if (!KristPay.INSTANCE.isUp()) {
+			callback.accept(false, null);
+			return;
+		}
 		
 		try {
 			Optional<KristTransaction> opt = KristAPI.makeTransaction(privatekey, to, amount, metadata);
 			
 			if (opt.isPresent()) {
-				callback.accept(true, opt.get());
+				syncWithNode(success -> {
+					if (!success) {
+						// TODO: handle this better?
+						balance -= amount;
+					}
+					
+					callback.accept(true, opt.get());
+				});
 			} else {
 				callback.accept(false, null);
 			}

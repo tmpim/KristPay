@@ -64,7 +64,7 @@ public class KristEconomy implements EconomyService {
 			account.setBalance(
 				getDefaultCurrency(),
 				account.getDefaultBalance(getDefaultCurrency()),
-				Cause.of(EventContext.empty(), this), // TODO: ????
+				Cause.of(EventContext.empty(), this),
 				null
 			);
 			

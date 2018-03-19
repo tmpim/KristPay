@@ -26,6 +26,8 @@ public class CommandBalance implements CommandExecutor {
 		.executor(new CommandBalance())
 		.build();
 	
+	private static final EconomyService ECONOMY_SERVICE = KristPay.INSTANCE.getEconomyService();
+	
 	@Override
 	public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
 		Optional<User> userArg = args.getOne("user");
@@ -39,16 +41,15 @@ public class CommandBalance implements CommandExecutor {
 			return CommandResult.empty();
 		}
 		
-		EconomyService economy = KristPay.INSTANCE.getEconomyService();
 		UUID uuid = user.getUniqueId();
 		
-		Optional<UniqueAccount> opt = economy.getOrCreateAccount(uuid);
-		if (!opt.isPresent()) {
+		Optional<UniqueAccount> accountOpt = ECONOMY_SERVICE.getOrCreateAccount(uuid);
+		if (!accountOpt.isPresent()) {
 			src.sendMessage(Text.of(TextColors.RED, "Failed to find that account."));
 			return CommandResult.empty();
 		}
-		UniqueAccount account = opt.get();
-		int balance = account.getBalance(economy.getDefaultCurrency()).intValue();
+		UniqueAccount account = accountOpt.get();
+		int balance = account.getBalance(KristPay.INSTANCE.getCurrency()).intValue();
 		
 		src.sendMessage(
 			Text.builder()

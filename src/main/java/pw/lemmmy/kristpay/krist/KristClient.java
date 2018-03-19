@@ -5,6 +5,7 @@ import org.java_websocket.drafts.Draft_6455;
 import org.java_websocket.handshake.ServerHandshake;
 import org.json.JSONObject;
 import pw.lemmmy.kristpay.KristPay;
+import pw.lemmmy.kristpay.economy.KristTransferResult;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -58,7 +59,7 @@ public class KristClient extends WebSocketClient {
 		message.put("type", type);
 		message.put("id", id);
 		
-		responseCallbacks.put(id, onResponse);
+		if (onResponse != null) responseCallbacks.put(id, onResponse);
 		
 		send(message.toString());
 	}
@@ -73,7 +74,13 @@ public class KristClient extends WebSocketClient {
 		});
 	}
 	
+	public void subscribe(String event) {
+		sendMessage("subscribe", new JSONObject().put("event", event), null);
+	}
+	
 	private void handleMessage(String type, JSONObject data) {
+		System.out.println(data.toString());
+		
 		switch (type) {
 			case "hello":
 				KristPay.INSTANCE.getLogger().info("Server MOTD: " + data.optString("motd", "N/A").trim());
@@ -83,8 +90,26 @@ public class KristClient extends WebSocketClient {
 				
 				KristPay.INSTANCE.getDatabase().syncWallets();
 				
+				subscribe("transactions");
+				
+				break;
+			case "event":
+				String event = data.optString("event");
+				
+				if (event.equals("transaction")) handleTransactionEvent(data);
+				
 				break;
 		}
+	}
+	
+	private void handleTransactionEvent(JSONObject data) {
+		if (!data.has("transaction")) return;
+		
+		JSONObject transactionJSON = data.getJSONObject("transaction");
+		KristTransaction transaction = KristTransaction.fromJSON(transactionJSON);
+		
+		if (KristPay.INSTANCE.getDepositManager() != null)
+			KristPay.INSTANCE.getDepositManager().handleTransaction(transaction);
 	}
 	
 	@Override

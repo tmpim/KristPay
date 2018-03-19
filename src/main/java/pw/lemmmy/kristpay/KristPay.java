@@ -29,6 +29,7 @@ import pw.lemmmy.kristpay.config.ConfigLoader;
 import pw.lemmmy.kristpay.database.Database;
 import pw.lemmmy.kristpay.economy.KristCurrency;
 import pw.lemmmy.kristpay.economy.KristEconomy;
+import pw.lemmmy.kristpay.krist.DepositManager;
 import pw.lemmmy.kristpay.krist.KristClientManager;
 import pw.lemmmy.kristpay.krist.MasterWallet;
 
@@ -54,6 +55,7 @@ public class KristPay {
 	private KristClientManager kristClientManager;
 	private MasterWallet masterWallet;
 	private Database database;
+	private DepositManager depositManager;
 	private KristCurrency currency = new KristCurrency();
 	
 	private KristEconomy economyService = new KristEconomy();
@@ -119,13 +121,21 @@ public class KristPay {
 			
 			try {
 				database.load();
+				depositManager = new DepositManager(database, masterWallet);
 			} catch (IOException e) {
 				logger.error("Error loading KristPay database", e);
 			}
 			
+			// TODO: configurable interval
 			Task.builder().execute(() -> this.getDatabase().save())
 				.async().interval(30, TimeUnit.SECONDS)
 				.name("KristPay - Automatic database save")
+				.submit(KristPay.INSTANCE);
+			
+			// TODO: configurable interval
+			Task.builder().execute(() -> this.getDatabase().syncWallets())
+				.async().delay(2, TimeUnit.MINUTES).interval(10, TimeUnit.MINUTES)
+				.name("KristPay - Legacy wallet sync")
 				.submit(KristPay.INSTANCE);
 		}
 	}

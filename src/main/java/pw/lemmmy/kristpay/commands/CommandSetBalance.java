@@ -19,7 +19,8 @@ import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.spongepowered.api.command.args.GenericArguments.*;
+import static org.spongepowered.api.command.args.GenericArguments.integer;
+import static org.spongepowered.api.command.args.GenericArguments.userOrSource;
 
 public class CommandSetBalance implements CommandExecutor {
 	public static final CommandSpec SPEC = CommandSpec.builder()

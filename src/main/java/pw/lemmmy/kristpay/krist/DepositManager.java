@@ -1,7 +1,6 @@
 package pw.lemmmy.kristpay.krist;
 
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.EventContext;
@@ -10,6 +9,7 @@ import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.user.UserStorageService;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
+import org.spongepowered.api.text.serializer.TextSerializers;
 import pw.lemmmy.kristpay.KristPay;
 import pw.lemmmy.kristpay.commands.CommandHelpers;
 import pw.lemmmy.kristpay.database.Database;
@@ -49,7 +49,7 @@ public class DepositManager {
 		masterWallet.transfer(refundAddress, depositAmount, "error=" + refundReason, (success, transaction) -> {});
 	}
 	
-	private void handleDeposit(KristAccount account, int depositAmount) {
+	private void handleDeposit(KristAccount account, String fromAddress, Map<String, String> meta, int depositAmount) {
 		Wallet depositWallet = account.getDepositWallet();
 		if (depositWallet == null) return;
 		
@@ -64,12 +64,42 @@ public class DepositManager {
 			Sponge.getServer().getPlayer(UUID.fromString(account.getOwner())).ifPresent(player -> {
 				if (!player.isOnline()) return; // TODO: queue deposit message until next time player is on
 				
-				player.sendMessage(
-					Text.builder()
-						.append(CommandHelpers.formatKrist(depositAmount))
-						.append(Text.of(TextColors.GREEN, " was sucessfully deposited into your account."))
-						.build()
-				);
+				Text.Builder builder = Text.builder()
+					.append(CommandHelpers.formatKrist(depositAmount))
+					.append(Text.of(TextColors.GREEN, " was deposited into your account"));
+				
+				if (fromAddress != null) {
+					builder.append(Text.of(TextColors.GREEN, " from "));
+					
+					if (meta != null && meta.containsKey("return")) {
+						builder.append(CommandHelpers.formatAddress(meta.get("return")))
+							.append(Text.of(TextColors.GREEN, " ("))
+							.append(CommandHelpers.formatAddress(fromAddress))
+							.append(Text.of(TextColors.GREEN, ")"));
+					} else {
+						builder.append(CommandHelpers.formatAddress(fromAddress));
+					}
+				}
+				
+				builder.append(Text.of(TextColors.GREEN, "."));
+				
+				if (meta != null && meta.containsKey("error")) {
+					Text error = TextSerializers.FORMATTING_CODE.deserialize(meta.get("error"));
+					
+					builder.append(Text.of("\n"))
+						.append(Text.of(TextColors.DARK_RED, "Error: "))
+						.append(Text.of(TextColors.RED, error));
+				}
+				
+				if (meta != null && meta.containsKey("message")) {
+					Text message = TextSerializers.FORMATTING_CODE.deserialize(meta.get("message"));
+					
+					builder.append(Text.of("\n"))
+						.append(Text.of(TextColors.DARK_GREEN, "Message: "))
+						.append(message);
+				}
+				
+				player.sendMessage(builder.build());
 			});
 		});
 	}
@@ -81,16 +111,21 @@ public class DepositManager {
 			&& transaction.getMetadata() != null && !transaction.getMetadata().isEmpty()) {
 			handleNameTransaction(transaction);
 		} else {
-			findAccountByAddress(address).ifPresent(account -> handleDeposit(account, transaction.getValue()));
+			findAccountByAddress(address).ifPresent(account -> handleDeposit(account, transaction.getFrom(),
+				null, transaction.getValue()));
 		}
 		
 		masterWallet.syncWithNode(cb -> {}); // TODO: does anything need to be handled here?
 	}
 	
 	private void handleNameTransaction(KristTransaction transaction) {
+		String fromAddress = transaction.getFrom();
+		int amount = transaction.getValue();
+		
 		Optional<Map<String, String>> commonMetaOpt = KristAPI.parseCommonMeta(transaction.getMetadata());
+		
 		if (!commonMetaOpt.isPresent()) {
-			refundDeposit(transaction.getFrom(), transaction.getValue(), "Could not parse CommonMeta");
+			refundDeposit(fromAddress, amount, "Could not parse CommonMeta");
 			return;
 		}
 		
@@ -102,30 +137,30 @@ public class DepositManager {
 		}
 		
 		if (!commonMeta.containsKey("metaname")) {
-			refundDeposit(transaction.getFrom(), transaction.getValue(), "Username not specified");
+			refundDeposit(fromAddress, amount, "Username not specified");
 			return;
 		}
 		String metaname = commonMeta.get("metaname");
 		
 		Optional<User> userOpt = userStorage.get(metaname); // case insensitive
 		if (!userOpt.isPresent()) {
-			refundDeposit(transaction.getFrom(), transaction.getValue(), "Could not find user");
+			refundDeposit(fromAddress, amount, "Could not find user");
 			return;
 		}
 		User user = userOpt.get();
 		
 		Optional<UniqueAccount> accountOpt = ECONOMY_SERVICE.getOrCreateAccount(user.getUniqueId());
 		if (!accountOpt.isPresent()) {
-			refundDeposit(transaction.getFrom(), transaction.getValue(), "Could not find user");
+			refundDeposit(fromAddress, amount, "Could not find user");
 			return;
 		}
 		UniqueAccount account = accountOpt.get();
 		if (!(account instanceof KristAccount)) {
-			refundDeposit(transaction.getFrom(), transaction.getValue(), "Could not find user");
+			refundDeposit(fromAddress, amount, "Could not find user");
 			return;
 		}
 		
-		handleDeposit((KristAccount) account, transaction.getValue());
+		handleDeposit((KristAccount) account, fromAddress, commonMeta, amount);
 	}
 	
 	public void walletSynced(KristAccount account) {
@@ -135,6 +170,6 @@ public class DepositManager {
 		int depositAmount = depositWallet.getBalance();
 		if (depositAmount <= 0) return;
 		
-		handleDeposit(account, depositAmount);
+		handleDeposit(account, null, null, depositAmount);
 	}
 }

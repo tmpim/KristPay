@@ -20,10 +20,7 @@ import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.channel.MessageReceiver;
-import pw.lemmmy.kristpay.commands.CommandBalance;
-import pw.lemmmy.kristpay.commands.CommandMasterBal;
-import pw.lemmmy.kristpay.commands.CommandPay;
-import pw.lemmmy.kristpay.commands.CommandSetBalance;
+import pw.lemmmy.kristpay.commands.*;
 import pw.lemmmy.kristpay.config.Config;
 import pw.lemmmy.kristpay.config.ConfigLoader;
 import pw.lemmmy.kristpay.database.Database;
@@ -102,6 +99,7 @@ public class KristPay {
 		Sponge.getCommandManager().register(this, CommandBalance.SPEC, "balance", "bal");
 		Sponge.getCommandManager().register(this, CommandMasterBal.SPEC, "masterbalance", "masterbal");
 		Sponge.getCommandManager().register(this, CommandPay.SPEC, "pay", "withdraw", "transfer");
+		Sponge.getCommandManager().register(this, CommandDeposit.SPEC, "deposit");
 		Sponge.getCommandManager().register(this, CommandSetBalance.SPEC, "setbalance", "setbal");
 	}
 	

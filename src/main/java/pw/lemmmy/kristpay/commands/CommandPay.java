@@ -16,6 +16,7 @@ import org.spongepowered.api.service.economy.transaction.TransferResult;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 import pw.lemmmy.kristpay.KristPay;
+import pw.lemmmy.kristpay.economy.KristAccount;
 import pw.lemmmy.kristpay.krist.MasterWallet;
 
 import java.math.BigDecimal;
@@ -87,12 +88,12 @@ public class CommandPay implements CommandExecutor {
 			UUID targetUUID = target.getUniqueId();
 			Optional<UniqueAccount> targetAccountOpt = ECONOMY_SERVICE.getOrCreateAccount(targetUUID);
 			
-			if (!targetAccountOpt.isPresent()) {
+			if (!targetAccountOpt.isPresent() || !(targetAccountOpt.get() instanceof KristAccount)) {
 				src.sendMessage(Text.of(TextColors.RED, "Failed to find the target user's account."));
 				return CommandResult.empty();
 			}
 			
-			UniqueAccount targetAccount = targetAccountOpt.get();
+			KristAccount targetAccount = (KristAccount) targetAccountOpt.get();
 			
 			if (target.getName().toLowerCase().matches(KRIST_TRANSFER_PATTERN)) {
 				src.sendMessage(Text.builder()
@@ -101,7 +102,8 @@ public class CommandPay implements CommandExecutor {
 						"Krist address. This command prefers users by default. If you wish to transfer to the address" +
 						" instead, add the "))
 					.append(Text.of(TextColors.GREEN, "-k "))
-					.append(Text.of(TextColors.YELLOW, "flag."))
+					.append(Text.of(TextColors.YELLOW, "flag. "))
+					.append(Text.of(TextColors.GOLD, "This warning will not be shown again.")) // TODO: lol
 					.build()
 				);
 			}

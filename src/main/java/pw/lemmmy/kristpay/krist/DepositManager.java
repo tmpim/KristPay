@@ -41,6 +41,14 @@ public class DepositManager {
 			.findFirst();
 	}
 	
+	private void refundDeposit(String refundAddress, int depositAmount, String refundReason) {
+		String primaryDepositName = KristPay.INSTANCE.getConfig().getMasterWallet().getPrimaryDepositName();
+		
+		refundReason += " (send to `username@" + primaryDepositName + "` to deposit, or set `donate=true` to donate)";
+		
+		masterWallet.transfer(refundAddress, depositAmount, "error=" + refundReason, (success, transaction) -> {});
+	}
+	
 	private void handleDeposit(KristAccount account, int depositAmount) {
 		Wallet depositWallet = account.getDepositWallet();
 		if (depositWallet == null) return;
@@ -81,20 +89,41 @@ public class DepositManager {
 	
 	private void handleNameTransaction(KristTransaction transaction) {
 		Optional<Map<String, String>> commonMetaOpt = KristAPI.parseCommonMeta(transaction.getMetadata());
-		if (!commonMetaOpt.isPresent()) return; // keep the funds as donation
+		if (!commonMetaOpt.isPresent()) {
+			refundDeposit(transaction.getFrom(), transaction.getValue(), "Could not parse CommonMeta");
+			return;
+		}
 		
 		Map<String, String> commonMeta = commonMetaOpt.get();
-		if (!commonMeta.containsKey("metaname")) return;
+		
+		if (commonMeta.containsKey("donate") && commonMeta.get("donate").trim().equalsIgnoreCase("true")) {
+			// TODO: notify users with certain permission?
+			return;
+		}
+		
+		if (!commonMeta.containsKey("metaname")) {
+			refundDeposit(transaction.getFrom(), transaction.getValue(), "Username not specified");
+			return;
+		}
 		String metaname = commonMeta.get("metaname");
 		
 		Optional<User> userOpt = userStorage.get(metaname); // case insensitive
-		if (!userOpt.isPresent()) return;
+		if (!userOpt.isPresent()) {
+			refundDeposit(transaction.getFrom(), transaction.getValue(), "Could not find user");
+			return;
+		}
 		User user = userOpt.get();
 		
 		Optional<UniqueAccount> accountOpt = ECONOMY_SERVICE.getOrCreateAccount(user.getUniqueId());
-		if (!accountOpt.isPresent()) return;
+		if (!accountOpt.isPresent()) {
+			refundDeposit(transaction.getFrom(), transaction.getValue(), "Could not find user");
+			return;
+		}
 		UniqueAccount account = accountOpt.get();
-		if (!(account instanceof KristAccount)) return;
+		if (!(account instanceof KristAccount)) {
+			refundDeposit(transaction.getFrom(), transaction.getValue(), "Could not find user");
+			return;
+		}
 		
 		handleDeposit((KristAccount) account, transaction.getValue());
 	}

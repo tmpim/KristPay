@@ -107,7 +107,7 @@ public class KristAPI {
 		
 		for (int i = 0; i < metaParts.length; i++) { // add the rest of the arguments
 			String metaPart = metaParts[i];
-			String[] kv = metaPart.split("=", 1);
+			String[] kv = metaPart.split("=", 2);
 			
 			if (kv.length == 1) { // no key specified, use argn as key
 				parts.put(String.valueOf(i), kv[0]); // TODO: consider handling cases where the meta actually has numeric keys?

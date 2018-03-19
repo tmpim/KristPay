@@ -126,7 +126,7 @@ public class KristAccount implements UniqueAccount {
 		int oldBalance = this.balance;
 		
 		// TODO: logging
-		System.out.println("Changing balance of " + owner + " from " + oldBalance + " to " + amount.intValue());
+		// System.out.println("Changing balance of " + owner + " from " + oldBalance + " to " + amount.intValue());
 		
 		if (amount.intValue() < 0) { // balance should never be negative
 			// TODO: log result

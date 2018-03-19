@@ -59,7 +59,7 @@ public class CommandPay implements CommandExecutor {
 		Optional<UniqueAccount> ownerAccountOpt = ECONOMY_SERVICE.getOrCreateAccount(ownerUUID);
 		
 		if (!ownerAccountOpt.isPresent()) {
-			src.sendMessage(Text.of(TextColors.RED, "Failed to find your account."));
+			src.sendMessage(Text.of(TextColors.RED, "Failed to find that account."));
 			return CommandResult.empty();
 		}
 		

@@ -44,7 +44,7 @@ public class CommandBalance implements CommandExecutor {
 		
 		Optional<UniqueAccount> opt = economy.getOrCreateAccount(uuid);
 		if (!opt.isPresent()) {
-			src.sendMessage(Text.of(TextColors.RED, "Failed to find your account."));
+			src.sendMessage(Text.of(TextColors.RED, "Failed to find that account."));
 			return CommandResult.empty();
 		}
 		UniqueAccount account = opt.get();
@@ -59,8 +59,6 @@ public class CommandBalance implements CommandExecutor {
 				.build()
 		);
 		
-		return CommandResult.builder()
-			.queryResult(balance)
-			.build();
+		return CommandResult.queryResult(balance);
 	}
 }

@@ -76,7 +76,11 @@ public class KristAPI {
 		return address.toString();
 	}
 	
-	public static String makeKristWalletAddress(String pkey) {
-		return makeV2Address(Utils.sha256("KRISTWALLET" + pkey) + "-000");
+	public static String makeKristWalletAddress(String password) {
+		return makeV2Address(makeKristWalletPrivatekey(password));
+	}
+	
+	public static String makeKristWalletPrivatekey(String password) {
+		return Utils.sha256("KRISTWALLET" + password) + "-000";
 	}
 }

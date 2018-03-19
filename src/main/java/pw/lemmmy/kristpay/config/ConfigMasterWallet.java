@@ -10,5 +10,5 @@ import pw.lemmmy.kristpay.Utils;
 public class ConfigMasterWallet {
 	@Setting private String privatekey = Utils.generatePassword();
 	
-	@Setting private String primaryDepositName;
+	@Setting private String primaryDepositName = "server.kst";
 }

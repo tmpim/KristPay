@@ -83,7 +83,7 @@ public class Database {
 		accounts.forEach((uuid, kristAccount) -> accountsJSON.put(new JSONObject()
 			.put("owner", kristAccount.getOwner())
 			.put("balance", kristAccount.getBalance())
-			.put("depositPassword", kristAccount.getDepositWallet().getPrivatekey())
+			.put("depositPassword", kristAccount.getDepositWallet().getPassword())
 		));
 		
 		data.put("accounts", accountsJSON);

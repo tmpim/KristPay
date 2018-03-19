@@ -14,7 +14,7 @@ import pw.lemmmy.kristpay.krist.MasterWallet;
 public class CommandMasterBal implements CommandExecutor {
 	public static final CommandSpec SPEC = CommandSpec.builder()
 		.description(Text.of("Check the KristPay master wallet's balance."))
-		.permission("kristpay.command.masterbal")
+		.permission("kristpay.command.masterbal.base")
 		.executor(new CommandMasterBal())
 		.build();
 	

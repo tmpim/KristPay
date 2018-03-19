@@ -10,13 +10,14 @@ import java.util.function.Consumer;
 
 @Getter
 public class Wallet {
-	private String privatekey;
+	private String password, privatekey;
 	private String address;
 	private int balance;
 	
-	public Wallet(String privatekey) {
-		this.privatekey = privatekey;
-		this.address = KristAPI.makeKristWalletAddress(privatekey);
+	public Wallet(String password) {
+		this.password = password;
+		this.privatekey = KristAPI.makeKristWalletPrivatekey(password);
+		this.address = KristAPI.makeKristWalletAddress(password);
 	}
 	
 	public void syncWithNode(Consumer<Boolean> callback) {

@@ -19,14 +19,13 @@ import pw.lemmmy.kristpay.KristPay;
 import pw.lemmmy.kristpay.krist.MasterWallet;
 
 import java.math.BigDecimal;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.spongepowered.api.command.args.GenericArguments.*;
 
 public class CommandPay implements CommandExecutor {
-	private static final String KRIST_TRANSFER_PATTERN = "^(?:[a-f0-9]{10}|k[a-z0-9]{9}|(?:[a-z0-9-_]{1,32}@)?[a-z0-9]{1,64}\\\\.kst)$";
+	private static final String KRIST_TRANSFER_PATTERN = "^(?:[a-f0-9]{10}|k[a-z0-9]{9}|(?:[a-z0-9-_]{1,32}@)?[a-z0-9]{1,64}\\.kst)$";
 	
 	private static final CommandElement TARGET_ELEMENT = firstParsing(
 		user(Text.of("user")),
@@ -152,7 +151,7 @@ public class CommandPay implements CommandExecutor {
 						.append(Text.of(TextColors.GREEN, "You have received "))
 						.append(CommandHelpers.formatKrist(result.getAmount()))
 						.append(Text.of(TextColors.GREEN, " from player "))
-						.append(Text.of(TextColors.YELLOW, target.getName()))
+						.append(Text.of(TextColors.YELLOW, owner.getName()))
 						.append(Text.of(TextColors.GREEN, "."))
 						.build()
 				));
@@ -184,7 +183,16 @@ public class CommandPay implements CommandExecutor {
 			case SUCCESS:
 				MasterWallet masterWallet = KristPay.INSTANCE.getMasterWallet();
 				
-				StringBuilder metadata = new StringBuilder();
+				StringBuilder metadata = new StringBuilder()
+					// return address
+					.append("return=")
+					.append(owner.getName().toLowerCase())
+					.append("@")
+					.append(KristPay.INSTANCE.getConfig().getMasterWallet().getPrimaryDepositName())
+					// username
+					.append(";")
+					.append("username=")
+					.append(owner.getName());
 				
 				masterWallet.transfer(target, amount, metadata.toString(), (success, transaction) -> {
 					if (!success) {
@@ -206,7 +214,7 @@ public class CommandPay implements CommandExecutor {
 						
 						if (!target.equalsIgnoreCase(transaction.getTo())) {
 							builder.append(Text.of(TextColors.GREEN, " ("))
-								.append(CommandHelpers.formatAddress(transaction.getFrom()))
+								.append(CommandHelpers.formatAddress(transaction.getTo()))
 								.append(Text.of(TextColors.GREEN, ")"));
 						}
 						

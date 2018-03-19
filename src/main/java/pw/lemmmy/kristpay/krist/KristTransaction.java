@@ -23,7 +23,7 @@ public class KristTransaction {
 			transactionJSON.optString("from", ""),
 			transactionJSON.optString("to", ""),
 			transactionJSON.optInt("value", 0),
-			Date.from(ZonedDateTime.parse(transactionJSON.optString("date", "")).toInstant()) // wtf?
+			Date.from(ZonedDateTime.parse(transactionJSON.optString("time", "")).toInstant()) // wtf?
 		);
 		
 		if (transactionJSON.has("name")) transaction.name = transactionJSON.getString("name");

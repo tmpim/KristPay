@@ -5,6 +5,9 @@ import org.spongepowered.api.service.sql.SqlService;
 import pw.lemmmy.kristpay.KristPay;
 
 import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class Database {
@@ -24,5 +27,22 @@ public class Database {
 	}
 	
 	public void load() {
+		
+	}
+	
+	private void createTables() {
+		String txLogTable = "CREATE TABLE IF NOT EXISTS ughghrr";
+		
+		try (Connection conn = data.getConnection();
+			 PreparedStatement stmt = conn.prepareStatement(txLogTable);
+			 ResultSet results = stmt.executeQuery()) {
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void addTransactionLogEntry() {
+		
 	}
 }

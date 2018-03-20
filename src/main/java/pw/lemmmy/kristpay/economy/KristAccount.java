@@ -137,7 +137,7 @@ public class KristAccount implements UniqueAccount {
 		
 		if (delta < 0) { // increase in balance - check master wallet can fund it
 			int masterBalance = KristPay.INSTANCE.getMasterWallet().getBalance();
-			int used = KristPay.INSTANCE.getDatabase().getTotalDistributedKrist();
+			int used = KristPay.INSTANCE.getAccountDatabase().getTotalDistributedKrist();
 			
 			int available = masterBalance - used;
 			int increase = Math.abs(delta);
@@ -147,14 +147,14 @@ public class KristAccount implements UniqueAccount {
 				return new KristTransactionResult(this, BigDecimal.valueOf(0), contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
 			} else {
 				balance = amount.intValue();
-				KristPay.INSTANCE.getDatabase().save();
+				KristPay.INSTANCE.getAccountDatabase().save();
 				// TODO: log result (success, deposit)
 				return new KristTransactionResult(this, BigDecimal.valueOf(increase), contexts, ResultType.SUCCESS, TransactionTypes.DEPOSIT);
 			}
 		} else if (delta > 0) { // decrease in balance
 			int decrease = Math.abs(delta); // use this in log
 			balance = amount.intValue();
-			KristPay.INSTANCE.getDatabase().save();
+			KristPay.INSTANCE.getAccountDatabase().save();
 			// TODO: log result (success, withdraw)
 			return new KristTransactionResult(this, BigDecimal.valueOf(Math.abs(delta)), contexts, ResultType.SUCCESS, TransactionTypes.WITHDRAW);
 		} else { // no change in balance
@@ -188,7 +188,7 @@ public class KristAccount implements UniqueAccount {
 		
 		balance -= amount.intValue();
 		target.balance += amount.intValue();
-		KristPay.INSTANCE.getDatabase().save();
+		KristPay.INSTANCE.getAccountDatabase().save();
 		// TODO: log result (success)
 		return new KristTransferResult(to, this, currency, amount, contexts, ResultType.SUCCESS, TransactionTypes.TRANSFER);
 	}

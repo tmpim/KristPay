@@ -10,7 +10,8 @@ import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.service.economy.account.Account;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import pw.lemmmy.kristpay.KristPay;
-import pw.lemmmy.kristpay.database.Database;
+import pw.lemmmy.kristpay.database.AccountDatabase;
+import pw.lemmmy.kristpay.database.AccountDatabase;
 
 import java.util.HashSet;
 import java.util.Optional;
@@ -35,12 +36,12 @@ public class KristEconomy implements EconomyService {
 	
 	@Override
 	public boolean hasAccount(UUID uuid) {
-		return KristPay.INSTANCE.getDatabase().getAccounts().containsKey(uuid.toString());
+		return KristPay.INSTANCE.getAccountDatabase().getAccounts().containsKey(uuid.toString());
 	}
 	
 	@Override
 	public boolean hasAccount(String identifier) {
-		return KristPay.INSTANCE.getDatabase().getAccounts().containsKey(identifier);
+		return KristPay.INSTANCE.getAccountDatabase().getAccounts().containsKey(identifier);
 	}
 	
 	@Override
@@ -54,7 +55,7 @@ public class KristEconomy implements EconomyService {
 	
 	@Override
 	public Optional<Account> getOrCreateAccount(String identifier) {
-		Database db = KristPay.INSTANCE.getDatabase();
+		AccountDatabase db = KristPay.INSTANCE.getAccountDatabase();
 		
 		if (db.getAccounts().containsKey(identifier)) {
 			return Optional.of(db.getAccounts().get(identifier));

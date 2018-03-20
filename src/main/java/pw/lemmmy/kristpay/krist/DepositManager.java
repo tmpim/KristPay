@@ -12,7 +12,7 @@ import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.text.serializer.TextSerializers;
 import pw.lemmmy.kristpay.KristPay;
 import pw.lemmmy.kristpay.commands.CommandHelpers;
-import pw.lemmmy.kristpay.database.Database;
+import pw.lemmmy.kristpay.database.AccountDatabase;
 import pw.lemmmy.kristpay.economy.KristAccount;
 
 import java.math.BigDecimal;
@@ -23,20 +23,20 @@ import java.util.UUID;
 public class DepositManager {
 	private static final EconomyService ECONOMY_SERVICE = KristPay.INSTANCE.getEconomyService();
 	
-	private Database database;
+	private AccountDatabase accountDatabase;
 	private MasterWallet masterWallet;
 	
 	private UserStorageService userStorage;
 	
-	public DepositManager(Database database, MasterWallet masterWallet) {
-		this.database = database;
+	public DepositManager(AccountDatabase accountDatabase, MasterWallet masterWallet) {
+		this.accountDatabase = accountDatabase;
 		this.masterWallet = masterWallet;
 		
 		userStorage = Sponge.getServiceManager().provide(UserStorageService.class).get();
 	}
 	
 	private Optional<KristAccount> findAccountByAddress(String address) {
-		return database.getAccounts().values().stream()
+		return accountDatabase.getAccounts().values().stream()
 			.filter(kristAccount -> kristAccount.getDepositWallet().getAddress().equalsIgnoreCase(address))
 			.findFirst();
 	}

@@ -22,7 +22,7 @@ public class CommandMasterBal implements CommandExecutor {
 	public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
 		MasterWallet masterWallet = KristPay.INSTANCE.getMasterWallet();
 		int masterBalance = masterWallet.getBalance();
-		int allocated = KristPay.INSTANCE.getDatabase().getTotalDistributedKrist();
+		int allocated = KristPay.INSTANCE.getAccountDatabase().getTotalDistributedKrist();
 		float allocatedPercentage = (((float) allocated) / ((float) masterBalance)) * 100.0f;
 		int unallocated = masterBalance - allocated;
 		float unallocatedPercentage = (((float) unallocated) / ((float) masterBalance)) * 100.0f;

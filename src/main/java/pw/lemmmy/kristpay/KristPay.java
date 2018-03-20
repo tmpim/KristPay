@@ -23,6 +23,8 @@ import org.spongepowered.api.text.channel.MessageReceiver;
 import pw.lemmmy.kristpay.commands.*;
 import pw.lemmmy.kristpay.config.Config;
 import pw.lemmmy.kristpay.config.ConfigLoader;
+import pw.lemmmy.kristpay.database.AccountDatabase;
+import pw.lemmmy.kristpay.database.AccountDatabase;
 import pw.lemmmy.kristpay.database.Database;
 import pw.lemmmy.kristpay.economy.KristCurrency;
 import pw.lemmmy.kristpay.economy.KristEconomy;
@@ -51,6 +53,7 @@ public class KristPay {
 	
 	private KristClientManager kristClientManager;
 	private MasterWallet masterWallet;
+	private AccountDatabase accountDatabase;
 	private Database database;
 	private DepositManager depositManager;
 	private KristCurrency currency = new KristCurrency();
@@ -86,7 +89,8 @@ public class KristPay {
 		receiver.sendMessage(Text.of("Reloading KristPay."));
 		kristClientManager.stopClient();
 		try {
-			database.load(); // todo: clear db before loading
+			accountDatabase.load(); // todo: clear db before loading
+			database.load();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -105,7 +109,7 @@ public class KristPay {
 	
 	@Listener
 	public void serverStopped(GameStoppedServerEvent event) {
-		if (database != null) database.save();
+		if (accountDatabase != null) accountDatabase.save();
 		if (isUp()) kristClientManager.stopClient();
 	}
 	
@@ -114,27 +118,37 @@ public class KristPay {
 	}
 	
 	public void loadDatabase() {
-		if (database == null) {
-			database = new Database(KristPay.INSTANCE.getConfigDir().resolve("kristpay.db").toFile());
+		if (accountDatabase == null) {
+			accountDatabase = new AccountDatabase(KristPay.INSTANCE.getConfigDir().resolve("kristpay.db").toFile());
 			
 			try {
-				database.load();
-				depositManager = new DepositManager(database, masterWallet);
+				accountDatabase.load();
+				depositManager = new DepositManager(accountDatabase, masterWallet);
 			} catch (IOException e) {
-				logger.error("Error loading KristPay database", e);
+				logger.error("Error loading KristPay account database", e);
 			}
 			
 			// TODO: configurable interval
-			Task.builder().execute(() -> this.getDatabase().save())
+			Task.builder().execute(() -> this.getAccountDatabase().save())
 				.async().interval(30, TimeUnit.SECONDS)
-				.name("KristPay - Automatic database save")
+				.name("KristPay - Automatic account database save")
 				.submit(KristPay.INSTANCE);
 			
 			// TODO: configurable interval
-			Task.builder().execute(() -> this.getDatabase().syncWallets())
+			Task.builder().execute(() -> this.getAccountDatabase().syncWallets())
 				.async().delay(2, TimeUnit.MINUTES).interval(10, TimeUnit.MINUTES)
 				.name("KristPay - Legacy wallet sync")
 				.submit(KristPay.INSTANCE);
+		}
+		
+		if (database == null) {
+			database = new Database();
+			
+			try {
+				database.load();
+			} catch (Exception e) {
+				logger.error("Error loading KristPay database", e);
+			}
 		}
 	}
 }

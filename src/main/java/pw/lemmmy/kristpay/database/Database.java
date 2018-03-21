@@ -46,15 +46,32 @@ public class Database {
 		");";
 		
 		try (Connection conn = data.getConnection();
-			 PreparedStatement stmt = conn.prepareStatement(txLogTable);
-			 ResultSet results = stmt.executeQuery()) {
-			
+			 PreparedStatement stmt = conn.prepareStatement(txLogTable)) {
+			stmt.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
 	
-	public void addTransactionLogEntry() {
+	public void addTransactionLogEntry(boolean success, String error, String fromAddress, String toAddress, int
+		amount, String returnAddress, String metaMessage, String metaError, int kristTXID) {
+		String query = "INSERT INTO tx_log (success, error, from_address, to_address, amount, return_address, " +
+			"meta_message, meta_error, krist_txid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 		
+		try (Connection conn = data.getConnection();
+			 PreparedStatement stmt = conn.prepareStatement(query)) {
+			stmt.setBoolean(1, success);
+			stmt.setString(2, error);
+			stmt.setString(3, fromAddress);
+			stmt.setString(4, toAddress);
+			stmt.setInt(5, amount);
+			stmt.setString(6, returnAddress);
+			stmt.setString(7, metaMessage);
+			stmt.setString(8, metaError);
+			stmt.setInt(9, kristTXID);
+			stmt.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 }

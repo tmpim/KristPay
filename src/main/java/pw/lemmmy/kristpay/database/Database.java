@@ -11,7 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class Database {
-	private static final String DB_URI = "jdbc:h2:kristpay.log.db"; // TODO: config opt?
+	private static final String DB_URI = KristPay.INSTANCE.getConfig().getDatabase().getConnectionURI();
 	
 	private SqlService sql;
 	private DataSource data;
@@ -27,11 +27,23 @@ public class Database {
 	}
 	
 	public void load() {
-		
+		createTables();
 	}
 	
 	private void createTables() {
-		String txLogTable = "CREATE TABLE IF NOT EXISTS ughghrr";
+		String txLogTable = "CREATE TABLE IF NOT EXISTS tx_log (" +
+			"id INT NOT NULL AUTO_INCREMENT," +
+			"success BOOLEAN," +
+			"error VARCHAR(255)," +
+			"from_address VARCHAR(255)," +
+			"to_address VARCHAR(255)," +
+			"amount INT," +
+			"return_address VARCHAR(255)," +
+			"meta_message VARCHAR(255)," +
+			"meta_error VARCHAR(255)," +
+			"krist_txid INT," +
+			"PRIMARY KEY (id)" +
+		");";
 		
 		try (Connection conn = data.getConnection();
 			 PreparedStatement stmt = conn.prepareStatement(txLogTable);

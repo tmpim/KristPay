@@ -24,7 +24,6 @@ import pw.lemmmy.kristpay.commands.*;
 import pw.lemmmy.kristpay.config.Config;
 import pw.lemmmy.kristpay.config.ConfigLoader;
 import pw.lemmmy.kristpay.database.AccountDatabase;
-import pw.lemmmy.kristpay.database.AccountDatabase;
 import pw.lemmmy.kristpay.database.Database;
 import pw.lemmmy.kristpay.economy.KristCurrency;
 import pw.lemmmy.kristpay.economy.KristEconomy;

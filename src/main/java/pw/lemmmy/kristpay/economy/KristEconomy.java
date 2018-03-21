@@ -11,7 +11,6 @@ import org.spongepowered.api.service.economy.account.Account;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import pw.lemmmy.kristpay.KristPay;
 import pw.lemmmy.kristpay.database.AccountDatabase;
-import pw.lemmmy.kristpay.database.AccountDatabase;
 
 import java.util.HashSet;
 import java.util.Optional;

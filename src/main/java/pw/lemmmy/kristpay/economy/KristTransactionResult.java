@@ -20,6 +20,7 @@ public class KristTransactionResult implements TransactionResult {
 	private Set<Context> contexts;
 	private ResultType result;
 	private TransactionType type;
+	private String error;
 	
 	@Override
 	public Currency getCurrency() {

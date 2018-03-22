@@ -14,6 +14,7 @@ import org.spongepowered.api.service.economy.transaction.TransferResult;
 import org.spongepowered.api.text.Text;
 import pw.lemmmy.kristpay.KristPay;
 import pw.lemmmy.kristpay.Utils;
+import pw.lemmmy.kristpay.database.Database;
 import pw.lemmmy.kristpay.krist.Wallet;
 
 import java.math.BigDecimal;
@@ -100,7 +101,8 @@ public class KristAccount implements UniqueAccount {
 		int newBalance = balance - amt;
 		
 		if (newBalance < 0) {
-			return new KristTransactionResult(this, amount, contexts, ResultType.ACCOUNT_NO_FUNDS, TransactionTypes.WITHDRAW);
+			return new KristTransactionResult(this, amount, contexts, ResultType.ACCOUNT_NO_FUNDS, TransactionTypes
+				.WITHDRAW, "Insufficient funds.");
 		} else {
 			return setBalance(currency, BigDecimal.valueOf(newBalance), cause, contexts);
 		}
@@ -130,7 +132,7 @@ public class KristAccount implements UniqueAccount {
 		
 		if (amount.intValue() < 0) { // balance should never be negative
 			// TODO: log result
-			return new KristTransactionResult(this, amount, contexts, ResultType.FAILED, TransactionTypes.WITHDRAW);
+			return new KristTransactionResult(this, amount, contexts, ResultType.FAILED, TransactionTypes.WITHDRAW, null);
 		}
 		
 		int delta = balance - amount.intValue();
@@ -144,22 +146,23 @@ public class KristAccount implements UniqueAccount {
 			
 			if (increase > available) {
 				// TODO: log result (failed, master wallet can't fund)
-				return new KristTransactionResult(this, BigDecimal.valueOf(0), contexts, ResultType.FAILED, TransactionTypes.DEPOSIT);
+				return new KristTransactionResult(this, BigDecimal.valueOf(0), contexts, ResultType.FAILED,
+					TransactionTypes.DEPOSIT, "Master wallet can't fund this.");
 			} else {
 				balance = amount.intValue();
 				KristPay.INSTANCE.getAccountDatabase().save();
 				// TODO: log result (success, deposit)
-				return new KristTransactionResult(this, BigDecimal.valueOf(increase), contexts, ResultType.SUCCESS, TransactionTypes.DEPOSIT);
+				return new KristTransactionResult(this, BigDecimal.valueOf(increase), contexts, ResultType.SUCCESS, TransactionTypes.DEPOSIT, null);
 			}
 		} else if (delta > 0) { // decrease in balance
 			int decrease = Math.abs(delta); // use this in log
 			balance = amount.intValue();
 			KristPay.INSTANCE.getAccountDatabase().save();
 			// TODO: log result (success, withdraw)
-			return new KristTransactionResult(this, BigDecimal.valueOf(Math.abs(delta)), contexts, ResultType.SUCCESS, TransactionTypes.WITHDRAW);
+			return new KristTransactionResult(this, BigDecimal.valueOf(Math.abs(delta)), contexts, ResultType.SUCCESS, TransactionTypes.WITHDRAW, null);
 		} else { // no change in balance
 			// TODO: log result (no change)
-			return new KristTransactionResult(this, BigDecimal.valueOf(0), contexts, ResultType.SUCCESS, TransactionTypes.WITHDRAW);
+			return new KristTransactionResult(this, BigDecimal.valueOf(0), contexts, ResultType.SUCCESS, TransactionTypes.WITHDRAW, null);
 		}
 	}
 	
@@ -171,25 +174,27 @@ public class KristAccount implements UniqueAccount {
 								   Set<Context> contexts) {
 		if (!(to instanceof KristAccount)) {
 			// TODO: log result (failed, target not a krist account)
-			return new KristTransferResult(to, this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.TRANSFER);
+			return new KristTransferResult(to, this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.TRANSFER, null);
 		}
 		
 		KristAccount target = (KristAccount) to;
 		
-		if (balance - amount.intValue() < 0) {
-			// TODO: log result (failed, no funds)
-			return new KristTransferResult(to, this, currency, amount, contexts, ResultType.ACCOUNT_NO_FUNDS, TransactionTypes.TRANSFER);
-		}
-		
 		if (amount.intValue() < 0) {
 			// TODO: log result (failed, amount < 0)
-			return new KristTransferResult(to, this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.TRANSFER);
+			return new KristTransferResult(to, this, currency, amount, contexts, ResultType.FAILED, TransactionTypes
+				.TRANSFER, "Amount is less than zero.");
+		}
+		
+		if (balance - amount.intValue() < 0) {
+			// TODO: log result (failed, no funds)
+			return new KristTransferResult(to, this, currency, amount, contexts, ResultType.ACCOUNT_NO_FUNDS,
+				TransactionTypes.TRANSFER, "Insufficient funds.");
 		}
 		
 		balance -= amount.intValue();
 		target.balance += amount.intValue();
 		KristPay.INSTANCE.getAccountDatabase().save();
 		// TODO: log result (success)
-		return new KristTransferResult(to, this, currency, amount, contexts, ResultType.SUCCESS, TransactionTypes.TRANSFER);
+		return new KristTransferResult(to, this, currency, amount, contexts, ResultType.SUCCESS, TransactionTypes.TRANSFER, null);
 	}
 }

@@ -1,8 +1,14 @@
 package pw.lemmmy.kristpay.database;
 
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.scheduler.Task;
+import org.spongepowered.api.service.economy.transaction.ResultType;
+import org.spongepowered.api.service.economy.transaction.TransactionResult;
+import org.spongepowered.api.service.economy.transaction.TransferResult;
 import org.spongepowered.api.service.sql.SqlService;
 import pw.lemmmy.kristpay.KristPay;
+import pw.lemmmy.kristpay.economy.KristTransactionResult;
+import pw.lemmmy.kristpay.economy.KristTransferResult;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -35,6 +41,9 @@ public class Database {
 			"id INT NOT NULL AUTO_INCREMENT," +
 			"success BOOLEAN," +
 			"error VARCHAR(255)," +
+			"type VARCHAR(255)," +
+			"from_account VARCHAR(255)," +
+			"to_account VARCHAR(255)," +
 			"from_address VARCHAR(255)," +
 			"to_address VARCHAR(255)," +
 			"amount INT," +
@@ -53,25 +62,62 @@ public class Database {
 		}
 	}
 	
-	public void addTransactionLogEntry(boolean success, String error, String fromAddress, String toAddress, int
-		amount, String returnAddress, String metaMessage, String metaError, int kristTXID) {
-		String query = "INSERT INTO tx_log (success, error, from_address, to_address, amount, return_address, " +
-			"meta_message, meta_error, krist_txid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+	public void addTransactionLogEntry(TransactionResult transactionResult,
+									   String fromAccount, String toAccount,
+									   String fromAddress, String toAddress, int amount, String returnAddress,
+									   String metaMessage, String metaError, int kristTXID) {
+		boolean success = transactionResult.getResult().equals(ResultType.SUCCESS);
+		String error = transactionResult.getResult().name().toLowerCase();
+		String type = transactionResult.getType().getName().toLowerCase();
 		
-		try (Connection conn = data.getConnection();
-			 PreparedStatement stmt = conn.prepareStatement(query)) {
-			stmt.setBoolean(1, success);
-			stmt.setString(2, error);
-			stmt.setString(3, fromAddress);
-			stmt.setString(4, toAddress);
-			stmt.setInt(5, amount);
-			stmt.setString(6, returnAddress);
-			stmt.setString(7, metaMessage);
-			stmt.setString(8, metaError);
-			stmt.setInt(9, kristTXID);
-			stmt.executeUpdate();
-		} catch (SQLException e) {
-			e.printStackTrace();
+		if (!success && transactionResult instanceof KristTransactionResult && ((KristTransactionResult) transactionResult).getError() != null) {
+			error = ((KristTransactionResult) transactionResult).getError();
 		}
+		
+		addTransactionLogEntry(success, error, type, fromAccount, toAccount, fromAddress, toAddress, amount, returnAddress, metaMessage, metaError, kristTXID);
+	}
+	
+	public void addTransactionLogEntry(TransferResult transferResult,
+									   String fromAccount, String toAccount,
+									   String fromAddress, String toAddress, int amount, String returnAddress,
+									   String metaMessage, String metaError, int kristTXID) {
+		boolean success = transferResult.getResult().equals(ResultType.SUCCESS);
+		String error = transferResult.getResult().name().toLowerCase();
+		String type = transferResult.getType().getName().toLowerCase();
+		
+		if (!success && transferResult instanceof KristTransferResult && ((KristTransferResult) transferResult).getError() != null) {
+			error = ((KristTransferResult) transferResult).getError();
+		}
+		
+		addTransactionLogEntry(success, error, type, fromAccount, toAccount, fromAddress, toAddress, amount, returnAddress, metaMessage, metaError, kristTXID);
+	}
+	
+	public void addTransactionLogEntry(boolean success, String error, String type,
+									   String fromAccount, String toAccount,
+									   String fromAddress, String toAddress, int amount, String returnAddress,
+									   String metaMessage, String metaError, int kristTXID) {
+		Task.builder().execute(() -> {
+			String query = "INSERT INTO tx_log (success, error, type, from_account, to_account, from_address, to_address," +
+				"amount, return_address, meta_message, meta_error, krist_txid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+			
+			try (Connection conn = data.getConnection();
+				 PreparedStatement stmt = conn.prepareStatement(query)) {
+				stmt.setBoolean(1, success);
+				stmt.setString(2, error);
+				stmt.setString(3, type);
+				stmt.setString(4, fromAccount);
+				stmt.setString(5, toAccount);
+				stmt.setString(6, fromAddress);
+				stmt.setString(7, toAddress);
+				stmt.setInt(8, amount);
+				stmt.setString(9, returnAddress);
+				stmt.setString(10, metaMessage);
+				stmt.setString(11, metaError);
+				stmt.setInt(122, kristTXID);
+				stmt.executeUpdate();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}).async().name("KristPay - Transaction log").submit(KristPay.INSTANCE);
 	}
 }

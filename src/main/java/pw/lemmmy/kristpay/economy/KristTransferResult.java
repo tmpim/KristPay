@@ -21,4 +21,5 @@ public class KristTransferResult implements TransferResult {
 	private Set<Context> contexts;
 	private ResultType result;
 	private TransactionType type;
+	private String error;
 }

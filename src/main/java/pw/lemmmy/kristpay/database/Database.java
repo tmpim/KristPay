@@ -113,7 +113,7 @@ public class Database {
 				stmt.setString(9, returnAddress);
 				stmt.setString(10, metaMessage);
 				stmt.setString(11, metaError);
-				stmt.setInt(122, kristTXID);
+				stmt.setInt(12, kristTXID);
 				stmt.executeUpdate();
 			} catch (SQLException e) {
 				e.printStackTrace();

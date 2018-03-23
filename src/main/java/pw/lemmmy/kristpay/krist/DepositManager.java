@@ -49,15 +49,31 @@ public class DepositManager {
 		masterWallet.transfer(refundAddress, depositAmount, "error=" + refundReason, (success, transaction) -> {});
 	}
 	
-	private void handleDeposit(KristAccount account, String fromAddress, Map<String, String> meta, int depositAmount) {
+	private void handleDeposit(KristAccount account,
+							   KristTransaction fromTx,
+							   Map<String, String> meta,
+							   int depositAmount) {
 		Wallet depositWallet = account.getDepositWallet();
 		if (depositWallet == null) return;
 		
-		depositWallet.transfer(masterWallet.getAddress(), depositAmount, null, (success, transaction) -> {
+		String fromAddress = fromTx != null ? fromTx.getFrom() : null;
+		
+		depositWallet.transfer(masterWallet.getAddress(), depositAmount, null, (success, depositTx) -> {
 			account.deposit(
 				KristPay.INSTANCE.getCurrency(),
 				BigDecimal.valueOf(depositAmount),
 				Cause.of(EventContext.empty(), this)
+			);
+			
+			KristPay.INSTANCE.getDatabase().addTransactionLogEntry(
+				true, null,
+				"deposit", null, account.getOwner(),
+				fromAddress, null,
+				depositAmount,
+				meta.get("return"),
+				meta.get("message"),
+				meta.get("error"),
+				fromTx != null ? fromTx.getId() : null
 			);
 			
 			// notify player of their deposit if they are online
@@ -111,8 +127,7 @@ public class DepositManager {
 			&& transaction.getMetadata() != null && !transaction.getMetadata().isEmpty()) {
 			handleNameTransaction(transaction);
 		} else {
-			findAccountByAddress(address).ifPresent(account -> handleDeposit(account, transaction.getFrom(),
-				null, transaction.getValue()));
+			findAccountByAddress(address).ifPresent(account -> handleDeposit(account, transaction,null, transaction.getValue()));
 		}
 		
 		masterWallet.syncWithNode(cb -> {}); // TODO: does anything need to be handled here?
@@ -160,7 +175,7 @@ public class DepositManager {
 			return;
 		}
 		
-		handleDeposit((KristAccount) account, fromAddress, commonMeta, amount);
+		handleDeposit((KristAccount) account, transaction, commonMeta, amount);
 	}
 	
 	public void walletSynced(KristAccount account) {

@@ -13,7 +13,6 @@ import pw.lemmmy.kristpay.economy.KristTransferResult;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class Database {
@@ -45,6 +44,7 @@ public class Database {
 			"from_account VARCHAR(255)," +
 			"to_account VARCHAR(255)," +
 			"from_address VARCHAR(255)," +
+			"dest_address VARCHAR(255)," +
 			"to_address VARCHAR(255)," +
 			"amount INT," +
 			"return_address VARCHAR(255)," +
@@ -63,9 +63,16 @@ public class Database {
 	}
 	
 	public void addTransactionLogEntry(TransactionResult transactionResult,
-									   String fromAccount, String toAccount,
-									   String fromAddress, String toAddress, int amount, String returnAddress,
-									   String metaMessage, String metaError, int kristTXID) {
+									   String fromAccount,
+									   String toAccount,
+									   String fromAddress,
+									   String destAddress,
+									   String toAddress,
+									   int amount,
+									   String returnAddress,
+									   String metaMessage,
+									   String metaError,
+									   int kristTXID) {
 		boolean success = transactionResult.getResult().equals(ResultType.SUCCESS);
 		String error = transactionResult.getResult().name().toLowerCase();
 		String type = transactionResult.getType().getName().toLowerCase();
@@ -74,13 +81,21 @@ public class Database {
 			error = ((KristTransactionResult) transactionResult).getError();
 		}
 		
-		addTransactionLogEntry(success, error, type, fromAccount, toAccount, fromAddress, toAddress, amount, returnAddress, metaMessage, metaError, kristTXID);
+		addTransactionLogEntry(success, error, type, fromAccount, toAccount, fromAddress, destAddress, toAddress,
+			amount, returnAddress, metaMessage, metaError, kristTXID);
 	}
 	
 	public void addTransactionLogEntry(TransferResult transferResult,
-									   String fromAccount, String toAccount,
-									   String fromAddress, String toAddress, int amount, String returnAddress,
-									   String metaMessage, String metaError, int kristTXID) {
+									   String fromAccount,
+									   String toAccount,
+									   String fromAddress,
+									   String destAddress,
+									   String toAddress,
+									   int amount,
+									   String returnAddress,
+									   String metaMessage,
+									   String metaError,
+									   int kristTXID) {
 		boolean success = transferResult.getResult().equals(ResultType.SUCCESS);
 		String error = transferResult.getResult().name().toLowerCase();
 		String type = transferResult.getType().getName().toLowerCase();
@@ -89,16 +104,27 @@ public class Database {
 			error = ((KristTransferResult) transferResult).getError();
 		}
 		
-		addTransactionLogEntry(success, error, type, fromAccount, toAccount, fromAddress, toAddress, amount, returnAddress, metaMessage, metaError, kristTXID);
+		addTransactionLogEntry(success, error, type, fromAccount, toAccount, fromAddress, destAddress, toAddress,
+			amount, returnAddress, metaMessage, metaError, kristTXID);
 	}
 	
-	public void addTransactionLogEntry(boolean success, String error, String type,
-									   String fromAccount, String toAccount,
-									   String fromAddress, String toAddress, int amount, String returnAddress,
-									   String metaMessage, String metaError, int kristTXID) {
+	public void addTransactionLogEntry(boolean success,
+									   String error,
+									   String type,
+									   String fromAccount,
+									   String toAccount,
+									   String fromAddress,
+									   String destAddress,
+									   String toAddress,
+									   int amount,
+									   String returnAddress,
+									   String metaMessage,
+									   String metaError,
+									   int kristTXID) {
 		Task.builder().execute(() -> {
-			String query = "INSERT INTO tx_log (success, error, type, from_account, to_account, from_address, to_address," +
-				"amount, return_address, meta_message, meta_error, krist_txid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+			String query = "INSERT INTO tx_log (success, error, type, from_account, to_account, from_address, " +
+				"dest_address, to_address, amount, return_address, meta_message, meta_error, krist_txid) " +
+				"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 			
 			try (Connection conn = data.getConnection();
 				 PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -108,12 +134,13 @@ public class Database {
 				stmt.setString(4, fromAccount);
 				stmt.setString(5, toAccount);
 				stmt.setString(6, fromAddress);
-				stmt.setString(7, toAddress);
-				stmt.setInt(8, amount);
-				stmt.setString(9, returnAddress);
-				stmt.setString(10, metaMessage);
-				stmt.setString(11, metaError);
-				stmt.setInt(12, kristTXID);
+				stmt.setString(7, destAddress);
+				stmt.setString(8, toAddress);
+				stmt.setInt(9, amount);
+				stmt.setString(10, returnAddress);
+				stmt.setString(11, metaMessage);
+				stmt.setString(12, metaError);
+				stmt.setInt(13, kristTXID);
 				stmt.executeUpdate();
 			} catch (SQLException e) {
 				e.printStackTrace();

@@ -68,7 +68,7 @@ public class DepositManager {
 			KristPay.INSTANCE.getDatabase().addTransactionLogEntry(
 				true, null,
 				"deposit", null, account.getIdentifier(),
-				fromAddress, null,
+				fromAddress, null, null,
 				depositAmount,
 				meta.get("return"),
 				meta.get("message"),

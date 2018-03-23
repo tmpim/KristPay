@@ -11,6 +11,7 @@ import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
+import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.service.economy.transaction.TransferResult;
 import org.spongepowered.api.text.Text;
@@ -138,9 +139,9 @@ public class CommandPay implements CommandExecutor {
 		KristPay.INSTANCE.getDatabase().addTransactionLogEntry(
 			result,
 			ownerAccount.getIdentifier(), targetAccount.getIdentifier(),
-			null, null,
-			amount,
 			null, null, null,
+			amount, null,
+			null, null,
 			-1
 		);
 		
@@ -190,6 +191,17 @@ public class CommandPay implements CommandExecutor {
 			Sponge.getCauseStackManager().getCurrentCause()
 		);
 		
+		if (result.getResult() != ResultType.SUCCESS) {
+			KristPay.INSTANCE.getDatabase().addTransactionLogEntry(
+				result,
+				ownerAccount.getIdentifier(), null,
+				null, target, null,
+				amount, null,
+				null, null,
+				-1
+			);
+		}
+		
 		switch (result.getResult()) {
 			case SUCCESS:
 				MasterWallet masterWallet = KristPay.INSTANCE.getMasterWallet();
@@ -206,6 +218,15 @@ public class CommandPay implements CommandExecutor {
 					.append(owner.getName());
 				
 				masterWallet.transfer(target, amount, metadata.toString(), (success, transaction) -> {
+					KristPay.INSTANCE.getDatabase().addTransactionLogEntry(
+						success, success ? (String) null : "Transaction failed.", "WITHDRAW",
+						ownerAccount.getIdentifier(), null,
+						null, target, transaction.getTo(),
+						amount, null,
+						null, null,
+						transaction.getId()
+					);
+					
 					if (!success) {
 						src.sendMessage(Text.of(TextColors.RED, "Transaction failed. Try again later, or contact an admin."));
 						

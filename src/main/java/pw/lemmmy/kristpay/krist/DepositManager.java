@@ -67,13 +67,13 @@ public class DepositManager {
 			
 			KristPay.INSTANCE.getDatabase().addTransactionLogEntry(
 				true, null,
-				"deposit", null, account.getOwner(),
+				"deposit", null, account.getIdentifier(),
 				fromAddress, null,
 				depositAmount,
 				meta.get("return"),
 				meta.get("message"),
 				meta.get("error"),
-				fromTx != null ? fromTx.getId() : null
+				fromTx != null ? fromTx.getId() : -1
 			);
 			
 			// notify player of their deposit if they are online

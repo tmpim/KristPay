@@ -135,6 +135,15 @@ public class CommandPay implements CommandExecutor {
 			Sponge.getCauseStackManager().getCurrentCause()
 		);
 		
+		KristPay.INSTANCE.getDatabase().addTransactionLogEntry(
+			result,
+			ownerAccount.getIdentifier(), targetAccount.getIdentifier(),
+			null, null,
+			amount,
+			null, null, null,
+			-1
+		);
+		
 		switch (result.getResult()) {
 			case SUCCESS:
 				src.sendMessage(

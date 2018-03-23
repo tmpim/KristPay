@@ -181,14 +181,12 @@ public class KristAccount implements UniqueAccount {
 		
 		if (amount.intValue() < 0) {
 			// TODO: log result (failed, amount < 0)
-			return new KristTransferResult(to, this, currency, amount, contexts, ResultType.FAILED, TransactionTypes
-				.TRANSFER, "Amount is less than zero.");
+			return new KristTransferResult(to, this, currency, amount, contexts, ResultType.FAILED, TransactionTypes.TRANSFER, "Amount is less than zero.");
 		}
 		
 		if (balance - amount.intValue() < 0) {
 			// TODO: log result (failed, no funds)
-			return new KristTransferResult(to, this, currency, amount, contexts, ResultType.ACCOUNT_NO_FUNDS,
-				TransactionTypes.TRANSFER, "Insufficient funds.");
+			return new KristTransferResult(to, this, currency, amount, contexts, ResultType.ACCOUNT_NO_FUNDS, TransactionTypes.TRANSFER, "Insufficient funds.");
 		}
 		
 		balance -= amount.intValue();

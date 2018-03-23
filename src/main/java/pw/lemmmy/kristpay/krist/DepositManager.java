@@ -15,6 +15,7 @@ import pw.lemmmy.kristpay.commands.CommandHelpers;
 import pw.lemmmy.kristpay.database.AccountDatabase;
 import pw.lemmmy.kristpay.economy.KristAccount;
 
+import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.util.Map;
 import java.util.Optional;
@@ -70,9 +71,9 @@ public class DepositManager {
 				"deposit", null, account.getIdentifier(),
 				fromAddress, null, null,
 				depositAmount,
-				meta.get("return"),
-				meta.get("message"),
-				meta.get("error"),
+				meta != null ? meta.get("return") : null,
+				meta != null ? meta.get("message") : null,
+				meta != null ? meta.get("error") : null,
 				fromTx != null ? fromTx.getId() : -1
 			);
 			

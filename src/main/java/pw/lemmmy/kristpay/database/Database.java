@@ -74,7 +74,7 @@ public class Database {
 									   String metaError,
 									   int kristTXID) {
 		boolean success = transactionResult.getResult().equals(ResultType.SUCCESS);
-		String error = transactionResult.getResult().name().toLowerCase();
+		String error = success ? null : transactionResult.getResult().name().toLowerCase();
 		String type = transactionResult.getType().getName().toLowerCase();
 		
 		if (!success && transactionResult instanceof KristTransactionResult && ((KristTransactionResult) transactionResult).getError() != null) {
@@ -97,7 +97,7 @@ public class Database {
 									   String metaError,
 									   int kristTXID) {
 		boolean success = transferResult.getResult().equals(ResultType.SUCCESS);
-		String error = transferResult.getResult().name().toLowerCase();
+		String error = success ? null : transferResult.getResult().name().toLowerCase();
 		String type = transferResult.getType().getName().toLowerCase();
 		
 		if (!success && transferResult instanceof KristTransferResult && ((KristTransferResult) transferResult).getError() != null) {

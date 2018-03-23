@@ -219,7 +219,7 @@ public class CommandPay implements CommandExecutor {
 				
 				masterWallet.transfer(target, amount, metadata.toString(), (success, transaction) -> {
 					KristPay.INSTANCE.getDatabase().addTransactionLogEntry(
-						success, success ? (String) null : "Transaction failed.", "WITHDRAW",
+						success, success ? null : "Transaction failed.", "withdraw",
 						ownerAccount.getIdentifier(), null,
 						null, target, transaction.getTo(),
 						amount, null,

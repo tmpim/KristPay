@@ -9,13 +9,20 @@ import java.time.ZonedDateTime;
 import java.util.Date;
 
 @Getter
-@RequiredArgsConstructor
 public class KristTransaction {
-	@NonNull private int id;
+	private int id;
 	@NonNull private String from, to;
-	@NonNull private int value;
+	private int value;
 	@NonNull private Date time;
 	private String name, metadata;
+	
+	public KristTransaction(int id, String from, String to, int value, Date time) {
+		this.id = id;
+		this.from = from;
+		this.to = to;
+		this.value = value;
+		this.time = time;
+	}
 	
 	public static KristTransaction fromJSON(JSONObject transactionJSON) {
 		KristTransaction transaction = new KristTransaction(

@@ -127,7 +127,7 @@ public class DepositManager {
 			&& transaction.getMetadata() != null && !transaction.getMetadata().isEmpty()) {
 			handleNameTransaction(transaction);
 		} else {
-			findAccountByAddress(address).ifPresent(account -> handleDeposit(account, transaction,null, transaction.getValue()));
+			findAccountByAddress(address).ifPresent(account -> handleDeposit(account, transaction, null, transaction.getValue()));
 		}
 		
 		masterWallet.syncWithNode(cb -> {}); // TODO: does anything need to be handled here?

@@ -17,6 +17,7 @@ import org.spongepowered.api.service.economy.transaction.TransferResult;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 import pw.lemmmy.kristpay.KristPay;
+import pw.lemmmy.kristpay.database.TransactionLogEntry;
 import pw.lemmmy.kristpay.economy.KristAccount;
 import pw.lemmmy.kristpay.krist.MasterWallet;
 
@@ -52,8 +53,7 @@ public class CommandPay implements CommandExecutor {
 	@Override
 	public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
 		if (!(src instanceof User)) {
-			src.sendMessage(Text.of(TextColors.RED, "Must be ran by a user."));
-			return CommandResult.empty();
+			throw new CommandException(Text.of("Must be ran by a user."));
 		}
 		
 		User owner = (User) src;
@@ -61,28 +61,24 @@ public class CommandPay implements CommandExecutor {
 		Optional<UniqueAccount> ownerAccountOpt = ECONOMY_SERVICE.getOrCreateAccount(ownerUUID);
 		
 		if (!ownerAccountOpt.isPresent()) {
-			src.sendMessage(Text.of(TextColors.RED, "Failed to find that account."));
-			return CommandResult.empty();
+			throw new CommandException(Text.of("Failed to find that account."));
 		}
 		
 		UniqueAccount ownerAccount = ownerAccountOpt.get();
 		
 		if (!args.<Integer>getOne("amount").isPresent()) {
-			src.sendMessage(Text.of(TextColors.RED, "Must specify a valid amount to pay."));
-			return CommandResult.empty();
+			throw new CommandException(Text.of("Must specify a valid amount to pay."));
 		}
 		
 		int amount = args.<Integer>getOne("amount").get();
 		
 		if (amount <= 0) {
-			src.sendMessage(Text.of(TextColors.RED, "Amount must be positive."));
-			return CommandResult.empty();
+			throw new CommandException(Text.of("Amount must be positive."));
 		}
 		
 		if (args.hasAny("user") && !args.hasAny("k")) {
 			if (!args.<User>getOne("user").isPresent()) {
-				src.sendMessage(Text.of(TextColors.RED, "Must specify a valid user or address to pay to."));
-				return CommandResult.empty();
+				throw new CommandException(Text.of("Must specify a valid user or address to pay to."));
 			}
 			
 			User target = args.<User>getOne("user").get();
@@ -90,8 +86,7 @@ public class CommandPay implements CommandExecutor {
 			Optional<UniqueAccount> targetAccountOpt = ECONOMY_SERVICE.getOrCreateAccount(targetUUID);
 			
 			if (!targetAccountOpt.isPresent() || !(targetAccountOpt.get() instanceof KristAccount)) {
-				src.sendMessage(Text.of(TextColors.RED, "Failed to find the target user's account."));
-				return CommandResult.empty();
+				throw new CommandException(Text.of("Failed to find the target user's account."));
 			}
 			
 			KristAccount targetAccount = (KristAccount) targetAccountOpt.get();
@@ -112,15 +107,13 @@ public class CommandPay implements CommandExecutor {
 			return payUser(src, owner, ownerAccount, target, targetAccount, amount);
 		} else {
 			if (!args.<String>getOne("address").isPresent()) {
-				src.sendMessage(Text.of(TextColors.RED, "Must specify a valid user or address to pay to."));
-				return CommandResult.empty();
+				throw new CommandException(Text.of("Must specify a valid user or address to pay to."));
 			}
 			
 			String target = args.<String>getOne("address").get().toLowerCase();
 			
 			if (!target.matches(KRIST_TRANSFER_PATTERN)) {
-				src.sendMessage(Text.of(TextColors.RED, "Must specify a valid user or address to pay to."));
-				return CommandResult.empty();
+				throw new CommandException(Text.of("Must specify a valid user or address to pay to."));
 			}
 			
 			return payAddress(src, owner, ownerAccount, target, amount);
@@ -128,7 +121,7 @@ public class CommandPay implements CommandExecutor {
 	}
 	
 	private CommandResult payUser(CommandSource src, User owner, UniqueAccount ownerAccount, User target,
-								  UniqueAccount targetAccount, int amount) {
+								  UniqueAccount targetAccount, int amount) throws CommandException {
 		TransferResult result = ownerAccount.transfer(
 			targetAccount,
 			KristPay.INSTANCE.getCurrency(),
@@ -136,14 +129,12 @@ public class CommandPay implements CommandExecutor {
 			Sponge.getCauseStackManager().getCurrentCause()
 		);
 		
-		KristPay.INSTANCE.getDatabase().addTransactionLogEntry(
-			result,
-			ownerAccount.getIdentifier(), targetAccount.getIdentifier(),
-			null, null, null,
-			amount, null,
-			null, null,
-			-1
-		);
+		new TransactionLogEntry()
+			.setTransferResult(result)
+			.setFromAccount(ownerAccount)
+			.setToAccount(targetAccount)
+			.setAmount(amount)
+			.add();
 		
 		switch (result.getResult()) {
 			case SUCCESS:
@@ -170,8 +161,7 @@ public class CommandPay implements CommandExecutor {
 				
 				return CommandResult.success();
 			case ACCOUNT_NO_FUNDS:
-				src.sendMessage(Text.of(TextColors.RED, "You don't have enough funds for this transaction."));
-				return CommandResult.empty();
+				throw new CommandException(Text.of("You don't have enough funds for this transaction."));
 			default:
 				src.sendMessage(
 					Text.builder()
@@ -184,7 +174,8 @@ public class CommandPay implements CommandExecutor {
 		}
 	}
 	
-	private CommandResult payAddress(CommandSource src, User owner, UniqueAccount ownerAccount, String target, int amount) {
+	private CommandResult payAddress(CommandSource src, User owner, UniqueAccount ownerAccount, String target,
+									 int amount) throws CommandException {
 		TransactionResult result = ownerAccount.withdraw(
 			KristPay.INSTANCE.getCurrency(),
 			BigDecimal.valueOf(amount),
@@ -192,14 +183,12 @@ public class CommandPay implements CommandExecutor {
 		);
 		
 		if (result.getResult() != ResultType.SUCCESS) {
-			KristPay.INSTANCE.getDatabase().addTransactionLogEntry(
-				result,
-				ownerAccount.getIdentifier(), null,
-				null, target, null,
-				amount, null,
-				null, null,
-				-1
-			);
+			new TransactionLogEntry()
+				.setTransactionResult(result)
+				.setFromAccount(ownerAccount)
+				.setDestAddress(target)
+				.setAmount(amount)
+				.add();
 		}
 		
 		switch (result.getResult()) {
@@ -218,14 +207,15 @@ public class CommandPay implements CommandExecutor {
 					.append(owner.getName());
 				
 				masterWallet.transfer(target, amount, metadata.toString(), (success, transaction) -> {
-					KristPay.INSTANCE.getDatabase().addTransactionLogEntry(
-						success, success ? null : "Transaction failed.", "withdraw",
-						ownerAccount.getIdentifier(), null,
-						null, target, transaction.getTo(),
-						amount, null,
-						null, null,
-						transaction.getId()
-					);
+					new TransactionLogEntry()
+						.setSuccess(success)
+						.setError(success ? null : "Transaction failed.")
+						.setType(TransactionLogEntry.EntryType.WITHDRAW)
+						.setFromAccount(ownerAccount)
+						.setDestAddress(target)
+						.setTransaction(transaction)
+						.setAmount(amount)
+						.add();
 					
 					if (!success) {
 						src.sendMessage(Text.of(TextColors.RED, "Transaction failed. Try again later, or contact an admin."));
@@ -256,17 +246,15 @@ public class CommandPay implements CommandExecutor {
 				
 				return CommandResult.success();
 			case ACCOUNT_NO_FUNDS:
-				src.sendMessage(Text.of(TextColors.RED, "You don't have enough funds for this transaction."));
-				return CommandResult.empty();
+				throw new CommandException(Text.of("You don't have enough funds for this transaction."));
 			default:
-				src.sendMessage(
+				throw new CommandException(
 					Text.builder()
 						.append(Text.of(TextColors.RED, "Transaction failed ("))
 						.append(Text.of(TextColors.DARK_RED, result.getResult().toString()))
 						.append(Text.of(TextColors.RED, ")."))
 						.build()
 				);
-				return CommandResult.empty();
 		}
 	}
 }

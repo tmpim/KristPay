@@ -34,8 +34,7 @@ public class CommandDeposit implements CommandExecutor {
 	@Override
 	public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
 		if (!(src instanceof User)) {
-			src.sendMessage(Text.of(TextColors.RED, "Must be ran by a user."));
-			return CommandResult.empty();
+			throw new CommandException(Text.of("Must be ran by a user."));
 		}
 		
 		User owner = (User) src;
@@ -43,8 +42,7 @@ public class CommandDeposit implements CommandExecutor {
 		Optional<UniqueAccount> ownerAccountOpt = ECONOMY_SERVICE.getOrCreateAccount(ownerUUID);
 		
 		if (!ownerAccountOpt.isPresent() || !(ownerAccountOpt.get() instanceof KristAccount)) {
-			src.sendMessage(Text.of(TextColors.RED, "Failed to find that account."));
-			return CommandResult.empty();
+			throw new CommandException(Text.of("Failed to find that account."));
 		}
 		
 		KristAccount ownerAccount = (KristAccount) ownerAccountOpt.get();

@@ -41,13 +41,11 @@ public class CommandSetBalance implements CommandExecutor {
 		Optional<Integer> balanceOptional = args.getOne("balance");
 		
 		if (!targetOptional.isPresent()) {
-			src.sendMessage(Text.of(TextColors.RED, "Must specify a valid user."));
-			return CommandResult.empty();
+			throw new CommandException(Text.of("Must specify a valid user."));
 		}
 		
 		if (!balanceOptional.isPresent()) {
-			src.sendMessage(Text.of(TextColors.RED, "Must specify a valid balance."));
-			return CommandResult.empty();
+			throw new CommandException(Text.of("Must specify a valid balance."));
 		}
 		
 		User target = targetOptional.get();
@@ -55,8 +53,7 @@ public class CommandSetBalance implements CommandExecutor {
 		Optional<UniqueAccount> targetAccountOpt = ECONOMY_SERVICE.getOrCreateAccount(targetUUID);
 		
 		if (!targetAccountOpt.isPresent()) {
-			src.sendMessage(Text.of(TextColors.RED, "Failed to find that account."));
-			return CommandResult.empty();
+			throw new CommandException(Text.of("Failed to find that account."));
 		}
 		
 		UniqueAccount targetAccount = targetAccountOpt.get();
@@ -64,8 +61,7 @@ public class CommandSetBalance implements CommandExecutor {
 		int balance = balanceOptional.get();
 		
 		if (balance < 0) {
-			src.sendMessage(Text.of(TextColors.RED, "Balance must be positive."));
-			return CommandResult.empty();
+			throw new CommandException(Text.of("Balance must be positive."));
 		}
 		
 		TransactionResult result = targetAccount.setBalance(
@@ -89,8 +85,7 @@ public class CommandSetBalance implements CommandExecutor {
 				
 				return CommandResult.queryResult(balance);
 			default:
-				src.sendMessage(Text.of(TextColors.RED, "Could not set the user's balance."));
-				return CommandResult.empty();
+				throw new CommandException(Text.of("Could not set the user's balance."));
 		}
 	}
 }

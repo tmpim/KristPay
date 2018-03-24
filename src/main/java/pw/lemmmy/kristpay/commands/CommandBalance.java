@@ -37,16 +37,14 @@ public class CommandBalance implements CommandExecutor {
 		} else if (src instanceof User) {
 			user = (User) src;
 		} else {
-			src.sendMessage(Text.of(TextColors.RED, "User must be valid."));
-			return CommandResult.empty();
+			throw new CommandException(Text.of("User must be valid."));
 		}
 		
 		UUID uuid = user.getUniqueId();
 		
 		Optional<UniqueAccount> accountOpt = ECONOMY_SERVICE.getOrCreateAccount(uuid);
 		if (!accountOpt.isPresent()) {
-			src.sendMessage(Text.of(TextColors.RED, "Failed to find that account."));
-			return CommandResult.empty();
+			throw new CommandException(Text.of("Failed to find that account."));
 		}
 		UniqueAccount account = accountOpt.get();
 		int balance = account.getBalance(KristPay.INSTANCE.getCurrency()).intValue();

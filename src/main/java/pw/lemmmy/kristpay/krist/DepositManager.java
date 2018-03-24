@@ -13,6 +13,7 @@ import org.spongepowered.api.text.serializer.TextSerializers;
 import pw.lemmmy.kristpay.KristPay;
 import pw.lemmmy.kristpay.commands.CommandHelpers;
 import pw.lemmmy.kristpay.database.AccountDatabase;
+import pw.lemmmy.kristpay.database.TransactionLogEntry;
 import pw.lemmmy.kristpay.economy.KristAccount;
 
 import javax.annotation.Nullable;
@@ -66,16 +67,14 @@ public class DepositManager {
 				Cause.of(EventContext.empty(), this)
 			);
 			
-			KristPay.INSTANCE.getDatabase().addTransactionLogEntry(
-				true, null,
-				"deposit", null, account.getIdentifier(),
-				fromAddress, null, null,
-				depositAmount,
-				meta != null ? meta.get("return") : null,
-				meta != null ? meta.get("message") : null,
-				meta != null ? meta.get("error") : null,
-				fromTx != null ? fromTx.getId() : -1
-			);
+			new TransactionLogEntry()
+				.setSuccess(true)
+				.setType(TransactionLogEntry.EntryType.DEPOSIT)
+				.setToAccount(account)
+				.setAmount(depositAmount)
+				.setMeta(meta)
+				.setTransaction(fromTx)
+				.add();
 			
 			// notify player of their deposit if they are online
 			Sponge.getServer().getPlayer(UUID.fromString(account.getOwner())).ifPresent(player -> {

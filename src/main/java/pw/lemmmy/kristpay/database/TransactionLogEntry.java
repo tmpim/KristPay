@@ -16,8 +16,10 @@ import pw.lemmmy.kristpay.krist.KristTransaction;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
+import java.util.Optional;
 
 @Data
 @Accessors(chain = true)
@@ -94,13 +96,13 @@ public class TransactionLogEntry {
 		return this;
 	}
 	
-	private void addToDatabase(DataSource data) {
+	public TransactionLogEntry addAsync() {
 		Task.builder().execute(() -> {
 			String query = "INSERT INTO tx_log (success, error, type, from_account, to_account, from_address, " +
 				"dest_address, to_address, amount, return_address, meta_message, meta_error, krist_txid) " +
 				"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 			
-			try (Connection conn = data.getConnection();
+			try (Connection conn = KristPay.INSTANCE.getDatabase().getDataSource().getConnection();
 				 PreparedStatement stmt = conn.prepareStatement(query)) {
 				stmt.setBoolean(1, success);
 				stmt.setString(2, error);
@@ -120,11 +122,43 @@ public class TransactionLogEntry {
 				e.printStackTrace();
 			}
 		}).async().name("KristPay - Transaction log").submit(KristPay.INSTANCE);
+		
+		return this;
 	}
 	
-	public TransactionLogEntry add() {
-		addToDatabase(KristPay.INSTANCE.getDatabase().getDataSource());
-		return this;
+	private static PreparedStatement prepareGetEntry(Connection conn, int id) throws SQLException {
+		String query = "SELECT * FROM tx_log WHERE id = ?";
+		PreparedStatement stmt = conn.prepareStatement(query);
+		stmt.setInt(1, id);
+		return stmt;
+	}
+	
+	public static Optional<TransactionLogEntry> getEntry(DataSource data, int id) {
+		try (Connection conn = data.getConnection();
+			 PreparedStatement stmt = prepareGetEntry(conn, id);
+			 ResultSet results = stmt.executeQuery()) {
+			TransactionLogEntry entry = new TransactionLogEntry();
+			
+			entry.success = results.getBoolean("success");
+			entry.error = results.getString("error");
+			entry.type = results.getString("type");
+			entry.fromAccount = results.getString("from_account");
+			entry.toAccount = results.getString("to_account");
+			entry.fromAddress = results.getString("from_address");
+			entry.destAddress = results.getString("dest_address");
+			entry.toAddress = results.getString("to_address");
+			entry.amount = results.getInt("amount");
+			entry.returnAddress = results.getString("return_address");
+			entry.metaMessage = results.getString("meta_message");
+			entry.metaError = results.getString("meta_error");
+			entry.kristTXID = results.getInt("krist_txid");
+			
+			return Optional.of(entry);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return Optional.empty();
 	}
 	
 	public enum EntryType {

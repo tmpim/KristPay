@@ -16,7 +16,6 @@ import pw.lemmmy.kristpay.database.AccountDatabase;
 import pw.lemmmy.kristpay.database.TransactionLogEntry;
 import pw.lemmmy.kristpay.economy.KristAccount;
 
-import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.util.Map;
 import java.util.Optional;
@@ -74,7 +73,7 @@ public class DepositManager {
 				.setAmount(depositAmount)
 				.setMeta(meta)
 				.setTransaction(fromTx)
-				.add();
+				.addAsync();
 			
 			// notify player of their deposit if they are online
 			Sponge.getServer().getPlayer(UUID.fromString(account.getOwner())).ifPresent(player -> {

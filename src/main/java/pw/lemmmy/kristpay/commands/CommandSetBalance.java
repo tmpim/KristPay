@@ -37,32 +37,14 @@ public class CommandSetBalance implements CommandExecutor {
 	
 	@Override
 	public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-		Optional<User> targetOptional = args.getOne("user");
-		Optional<Integer> balanceOptional = args.getOne("balance");
+		int balance = args.<Integer>getOne("balance")
+			.orElseThrow(() -> new CommandException(Text.of("Must specify a valid balance.")));
+		if (balance < 0) throw new CommandException(Text.of("Balance must be positive."));
 		
-		if (!targetOptional.isPresent()) {
-			throw new CommandException(Text.of("Must specify a valid user."));
-		}
-		
-		if (!balanceOptional.isPresent()) {
-			throw new CommandException(Text.of("Must specify a valid balance."));
-		}
-		
-		User target = targetOptional.get();
-		UUID targetUUID = target.getUniqueId();
-		Optional<UniqueAccount> targetAccountOpt = ECONOMY_SERVICE.getOrCreateAccount(targetUUID);
-		
-		if (!targetAccountOpt.isPresent()) {
-			throw new CommandException(Text.of("Failed to find that account."));
-		}
-		
-		UniqueAccount targetAccount = targetAccountOpt.get();
-		
-		int balance = balanceOptional.get();
-		
-		if (balance < 0) {
-			throw new CommandException(Text.of("Balance must be positive."));
-		}
+		User target = args.<User>getOne("user")
+			.orElseThrow(() -> new CommandException(Text.of("Must specify a valid user.")));
+		UniqueAccount targetAccount = ECONOMY_SERVICE.getOrCreateAccount(target.getUniqueId())
+			.orElseThrow(() -> new CommandException(Text.of("Failed to find that account.")));
 		
 		TransactionResult result = targetAccount.setBalance(
 			KristPay.INSTANCE.getCurrency(),

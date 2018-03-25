@@ -33,19 +33,10 @@ public class CommandDeposit implements CommandExecutor {
 	
 	@Override
 	public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-		if (!(src instanceof User)) {
-			throw new CommandException(Text.of("Must be ran by a user."));
-		}
-		
+		if (!(src instanceof User)) throw new CommandException(Text.of("Must be ran by a user."));
 		User owner = (User) src;
-		UUID ownerUUID = owner.getUniqueId();
-		Optional<UniqueAccount> ownerAccountOpt = ECONOMY_SERVICE.getOrCreateAccount(ownerUUID);
-		
-		if (!ownerAccountOpt.isPresent() || !(ownerAccountOpt.get() instanceof KristAccount)) {
-			throw new CommandException(Text.of("Failed to find that account."));
-		}
-		
-		KristAccount ownerAccount = (KristAccount) ownerAccountOpt.get();
+		KristAccount ownerAccount = (KristAccount) ECONOMY_SERVICE.getOrCreateAccount(owner.getUniqueId())
+			.orElseThrow(() -> new CommandException(Text.of("Failed to find your account.")));
 		
 		if (args.hasAny("legacy")) {
 			src.sendMessage(Text.builder()

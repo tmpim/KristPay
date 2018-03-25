@@ -52,44 +52,20 @@ public class CommandPay implements CommandExecutor {
 	
 	@Override
 	public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-		if (!(src instanceof User)) {
-			throw new CommandException(Text.of("Must be ran by a user."));
-		}
-		
+		if (!(src instanceof User)) throw new CommandException(Text.of("Must be ran by a user."));
 		User owner = (User) src;
-		UUID ownerUUID = owner.getUniqueId();
-		Optional<UniqueAccount> ownerAccountOpt = ECONOMY_SERVICE.getOrCreateAccount(ownerUUID);
+		UniqueAccount ownerAccount = ECONOMY_SERVICE.getOrCreateAccount(owner.getUniqueId())
+			.orElseThrow(() -> new CommandException(Text.of("Failed to find that account.")));
 		
-		if (!ownerAccountOpt.isPresent()) {
-			throw new CommandException(Text.of("Failed to find that account."));
-		}
-		
-		UniqueAccount ownerAccount = ownerAccountOpt.get();
-		
-		if (!args.<Integer>getOne("amount").isPresent()) {
-			throw new CommandException(Text.of("Must specify a valid amount to pay."));
-		}
-		
-		int amount = args.<Integer>getOne("amount").get();
-		
-		if (amount <= 0) {
-			throw new CommandException(Text.of("Amount must be positive."));
-		}
+		int amount = args.<Integer>getOne("amount")
+			.orElseThrow(() ->  new CommandException(Text.of("Must specify a valid amount to pay.")));
+		if (amount <= 0) throw new CommandException(Text.of("Amount must be positive."));
 		
 		if (args.hasAny("user") && !args.hasAny("k")) {
-			if (!args.<User>getOne("user").isPresent()) {
-				throw new CommandException(Text.of("Must specify a valid user or address to pay to."));
-			}
-			
-			User target = args.<User>getOne("user").get();
-			UUID targetUUID = target.getUniqueId();
-			Optional<UniqueAccount> targetAccountOpt = ECONOMY_SERVICE.getOrCreateAccount(targetUUID);
-			
-			if (!targetAccountOpt.isPresent() || !(targetAccountOpt.get() instanceof KristAccount)) {
-				throw new CommandException(Text.of("Failed to find the target user's account."));
-			}
-			
-			KristAccount targetAccount = (KristAccount) targetAccountOpt.get();
+			User target = args.<User>getOne("user")
+				.orElseThrow(() -> new CommandException(Text.of("Must specify a valid user or address to pay to.")));
+			KristAccount targetAccount = (KristAccount) ECONOMY_SERVICE.getOrCreateAccount(target.getUniqueId())
+				.orElseThrow(() -> new CommandException(Text.of("Failed to find the target user's account.")));
 			
 			if (target.getName().toLowerCase().matches(KRIST_TRANSFER_PATTERN)) {
 				src.sendMessage(Text.builder()
@@ -106,15 +82,12 @@ public class CommandPay implements CommandExecutor {
 			
 			return payUser(src, owner, ownerAccount, target, targetAccount, amount);
 		} else {
-			if (!args.<String>getOne("address").isPresent()) {
-				throw new CommandException(Text.of("Must specify a valid user or address to pay to."));
-			}
+			String target = args.<String>getOne("address")
+				.orElseThrow(() -> new CommandException(Text.of("Must specify a valid user or address to pay to.")))
+				.toLowerCase();
 			
-			String target = args.<String>getOne("address").get().toLowerCase();
-			
-			if (!target.matches(KRIST_TRANSFER_PATTERN)) {
+			if (!target.matches(KRIST_TRANSFER_PATTERN))
 				throw new CommandException(Text.of("Must specify a valid user or address to pay to."));
-			}
 			
 			return payAddress(src, owner, ownerAccount, target, amount);
 		}
@@ -134,7 +107,7 @@ public class CommandPay implements CommandExecutor {
 			.setFromAccount(ownerAccount)
 			.setToAccount(targetAccount)
 			.setAmount(amount)
-			.add();
+			.addAsync();
 		
 		switch (result.getResult()) {
 			case SUCCESS:
@@ -188,7 +161,7 @@ public class CommandPay implements CommandExecutor {
 				.setFromAccount(ownerAccount)
 				.setDestAddress(target)
 				.setAmount(amount)
-				.add();
+				.addAsync();
 		}
 		
 		switch (result.getResult()) {
@@ -215,7 +188,7 @@ public class CommandPay implements CommandExecutor {
 						.setDestAddress(target)
 						.setTransaction(transaction)
 						.setAmount(amount)
-						.add();
+						.addAsync();
 					
 					if (!success) {
 						src.sendMessage(Text.of(TextColors.RED, "Transaction failed. Try again later, or contact an admin."));

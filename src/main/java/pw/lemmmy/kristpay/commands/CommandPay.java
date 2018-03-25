@@ -17,6 +17,7 @@ import org.spongepowered.api.service.economy.transaction.TransferResult;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 import pw.lemmmy.kristpay.KristPay;
+import pw.lemmmy.kristpay.database.TransactionType;
 import pw.lemmmy.kristpay.database.TransactionLogEntry;
 import pw.lemmmy.kristpay.economy.KristAccount;
 import pw.lemmmy.kristpay.krist.MasterWallet;
@@ -181,7 +182,7 @@ public class CommandPay implements CommandExecutor {
 					new TransactionLogEntry()
 						.setSuccess(success)
 						.setError(success ? null : "Transaction failed.")
-						.setType(TransactionLogEntry.EntryType.WITHDRAW)
+						.setType(TransactionType.WITHDRAW)
 						.setFromAccount(ownerAccount)
 						.setDestAddress(target)
 						.setTransaction(transaction)

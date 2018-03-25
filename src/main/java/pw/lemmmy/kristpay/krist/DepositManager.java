@@ -13,6 +13,7 @@ import org.spongepowered.api.text.serializer.TextSerializers;
 import pw.lemmmy.kristpay.KristPay;
 import pw.lemmmy.kristpay.commands.CommandHelpers;
 import pw.lemmmy.kristpay.database.AccountDatabase;
+import pw.lemmmy.kristpay.database.TransactionType;
 import pw.lemmmy.kristpay.database.TransactionLogEntry;
 import pw.lemmmy.kristpay.economy.KristAccount;
 
@@ -68,7 +69,7 @@ public class DepositManager {
 			
 			new TransactionLogEntry()
 				.setSuccess(true)
-				.setType(TransactionLogEntry.EntryType.DEPOSIT)
+				.setType(TransactionType.DEPOSIT)
 				.setToAccount(account)
 				.setAmount(depositAmount)
 				.setMeta(meta)

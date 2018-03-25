@@ -19,6 +19,7 @@ import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.text.format.TextStyles;
 import org.spongepowered.api.text.serializer.TextSerializers;
 import pw.lemmmy.kristpay.KristPay;
+import pw.lemmmy.kristpay.database.TransactionType;
 import pw.lemmmy.kristpay.database.TransactionLogEntry;
 import pw.lemmmy.kristpay.krist.MasterWallet;
 
@@ -53,7 +54,7 @@ public class CommandTransaction implements CommandExecutor {
 		int id = args.<Integer>getOne("id")
 			.orElseThrow(() -> new CommandException(Text.of("Must specify a valid transaction ID.")));
 		
-		TransactionLogEntry entry =  TransactionLogEntry.getEntry(KristPay.INSTANCE.getDatabase().getDataSource(), id)
+		TransactionLogEntry entry = TransactionLogEntry.getEntry(KristPay.INSTANCE.getDatabase().getDataSource(), id)
 			.orElseThrow(() -> new CommandException(Text.of("Could not find that transaction.")));
 		
 		Optional<User> user = src instanceof User ? Optional.of((User) src) : Optional.empty();
@@ -83,7 +84,7 @@ public class CommandTransaction implements CommandExecutor {
 		
 		Text.Builder typeBuilder = Text.builder()
 			.append(Text.of(TextColors.GREEN, "Type: "))
-			.append(Text.of(TextStyles.BOLD, TransactionLogEntry.EntryType.getLongTextOf(entry.getType())))
+			.append(Text.of(TextStyles.BOLD, TransactionType.getLongTextOf(entry.getType())))
 			.append(Text.of(" ("))
 			.append(Text.of(successColour, entry.isSuccess() ? "success" : "failed"))
 			.append(Text.of(")"));
@@ -102,7 +103,7 @@ public class CommandTransaction implements CommandExecutor {
 			.append(Text.of(TextColors.GRAY, "Krist TXID: "))
 			.append(Text.of(TextColors.YELLOW, entry.getKristTXID()))
 			.append(Text.of(")"))
-			.onHover(TextActions.showText(Text.of(TextColors.BLUE, "https://kristweb.lemmmy.pw/transactions/" + entry.getKristTXID())))
+			.onHover(TextActions.showText(Text.of(TextColors.AQUA, "https://kristweb.lemmmy.pw/transactions/" + entry.getKristTXID())))
 			.onClick(TextActions.openUrl(getKristTransactionURL(entry)))
 			.build());
 		contents.add(amountBuilder.build());

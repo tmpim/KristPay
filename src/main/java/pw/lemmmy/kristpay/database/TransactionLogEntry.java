@@ -1,17 +1,13 @@
 package pw.lemmmy.kristpay.database;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
 import lombok.experimental.Accessors;
-import org.apache.commons.lang3.StringUtils;
+import lombok.val;
 import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.service.economy.transaction.TransferResult;
-import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.format.TextColors;
 import pw.lemmmy.kristpay.KristPay;
 import pw.lemmmy.kristpay.economy.KristTransactionResult;
 import pw.lemmmy.kristpay.economy.KristTransferResult;
@@ -19,6 +15,8 @@ import pw.lemmmy.kristpay.krist.KristTransaction;
 
 import javax.sql.DataSource;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -68,7 +66,7 @@ public class TransactionLogEntry {
 		return this;
 	}
 	
-	public TransactionLogEntry setType(EntryType entryType) {
+	public TransactionLogEntry setType(TransactionType entryType) {
 		type = entryType.name().toLowerCase();
 		return this;
 	}
@@ -131,6 +129,29 @@ public class TransactionLogEntry {
 		return this;
 	}
 	
+	private static TransactionLogEntry populateEntry(ResultSet results) throws SQLException {
+		TransactionLogEntry entry = new TransactionLogEntry();
+		
+		entry.id = results.getInt("id");
+		
+		entry.success = results.getBoolean("success");
+		entry.error = results.getString("error");
+		entry.type = results.getString("type");
+		entry.fromAccount = results.getString("from_account");
+		entry.toAccount = results.getString("to_account");
+		entry.fromAddress = results.getString("from_address");
+		entry.destAddress = results.getString("dest_address");
+		entry.toAddress = results.getString("to_address");
+		entry.amount = results.getInt("amount");
+		entry.returnAddress = results.getString("return_address");
+		entry.metaMessage = results.getString("meta_message");
+		entry.metaError = results.getString("meta_error");
+		entry.kristTXID = results.getInt("krist_txid");
+		entry.time = results.getTimestamp("time");
+		
+		return entry;
+	}
+	
 	private static PreparedStatement prepareGetEntry(Connection conn, int id) throws SQLException {
 		String query = "SELECT * FROM tx_log WHERE id = ? LIMIT 1";
 		PreparedStatement stmt = conn.prepareStatement(query);
@@ -143,27 +164,7 @@ public class TransactionLogEntry {
 			 PreparedStatement stmt = prepareGetEntry(conn, id);
 			 ResultSet results = stmt.executeQuery()) {
 			if (!results.next()) return Optional.empty();
-			
-			TransactionLogEntry entry = new TransactionLogEntry();
-			
-			entry.id = results.getInt("id");
-			
-			entry.success = results.getBoolean("success");
-			entry.error = results.getString("error");
-			entry.type = results.getString("type");
-			entry.fromAccount = results.getString("from_account");
-			entry.toAccount = results.getString("to_account");
-			entry.fromAddress = results.getString("from_address");
-			entry.destAddress = results.getString("dest_address");
-			entry.toAddress = results.getString("to_address");
-			entry.amount = results.getInt("amount");
-			entry.returnAddress = results.getString("return_address");
-			entry.metaMessage = results.getString("meta_message");
-			entry.metaError = results.getString("meta_error");
-			entry.kristTXID = results.getInt("krist_txid");
-			entry.time = results.getTimestamp("time");
-			
-			return Optional.of(entry);
+			return Optional.of(populateEntry(results));
 		} catch (SQLException e) {
 			KristPay.INSTANCE.getLogger().error("Error getting transaction", e);
 		}
@@ -171,30 +172,43 @@ public class TransactionLogEntry {
 		return Optional.empty();
 	}
 	
-	@Getter
-	@AllArgsConstructor
-	public enum EntryType {
-		DEPOSIT(Text.of(TextColors.DARK_GREEN, "D"), Text.of(TextColors.DARK_GREEN, "Deposit")),
-		WITHDRAW(Text.of(TextColors.DARK_RED, "W"), Text.of(TextColors.DARK_RED, "Withdraw")),
-		TRANSFER(Text.of(TextColors.GOLD, "T"), Text.of(TextColors.GOLD, "Transfer"));
+	private static PreparedStatement prepareGetEntries(Connection conn, String account) throws SQLException {
+		String query = "SELECT * FROM tx_log WHERE from_account = ? OR to_account = ? ORDER BY id DESC";
+		PreparedStatement stmt = conn.prepareStatement(query);
+		stmt.setString(1, account);
+		stmt.setString(2, account);
+		return stmt;
+	}
+	
+	public static List<TransactionLogEntry> getEntries(DataSource data, String account) {
+		val entries = new ArrayList<TransactionLogEntry>();
 		
-		private Text shortText;
-		private Text longText;
-		
-		public static Text getShortTextOf(String type) {
-			try {
-				return valueOf(type.toUpperCase()).shortText;
-			} catch (Exception ignored) {
-				return Text.of(TextColors.GRAY, ("" + type.charAt(1)).toUpperCase());
+		try (Connection conn = data.getConnection();
+			 PreparedStatement stmt = prepareGetEntries(conn, account);
+			 ResultSet results = stmt.executeQuery()) {
+			while (results.next()) {
+				entries.add(populateEntry(results));
 			}
+		} catch (SQLException e) {
+			KristPay.INSTANCE.getLogger().error("Error getting transactions", e);
 		}
 		
-		public static Text getLongTextOf(String type) {
-			try {
-				return valueOf(type.toUpperCase()).longText;
-			} catch (Exception ignored) {
-				return Text.of(TextColors.GRAY, StringUtils.capitalize(type));
+		return entries;
+	}
+	
+	public static List<TransactionLogEntry> getAllEntries(DataSource data) {
+		val entries = new ArrayList<TransactionLogEntry>();
+		
+		try (Connection conn = data.getConnection();
+			 PreparedStatement stmt = conn.prepareStatement("SELECT * FROM tx_log ORDER BY id DESC");
+			 ResultSet results = stmt.executeQuery()) {
+			while (results.next()) {
+				entries.add(populateEntry(results));
 			}
+		} catch (SQLException e) {
+			KristPay.INSTANCE.getLogger().error("Error getting transactions", e);
 		}
+		
+		return entries;
 	}
 }

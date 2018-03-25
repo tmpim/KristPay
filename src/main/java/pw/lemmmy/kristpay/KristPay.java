@@ -18,6 +18,7 @@ import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.game.state.GameStoppedServerEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.scheduler.Task;
+import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.channel.MessageReceiver;
 import pw.lemmmy.kristpay.commands.*;
@@ -72,7 +73,7 @@ public class KristPay {
 		masterWallet = new MasterWallet(config.getMasterWallet().getPrivatekey());
 		
 		economyService = new KristEconomy();
-		Sponge.getServiceManager().setProvider(this, KristEconomy.class, economyService);
+		Sponge.getServiceManager().setProvider(this, EconomyService.class, economyService);
 	}
 	
 	@Listener
@@ -105,6 +106,7 @@ public class KristPay {
 		Sponge.getCommandManager().register(this, CommandDeposit.SPEC, "deposit");
 		Sponge.getCommandManager().register(this, CommandSetBalance.SPEC, "setbalance", "setbal");
 		Sponge.getCommandManager().register(this, CommandTransaction.SPEC, "transaction", "tx");
+		Sponge.getCommandManager().register(this, CommandTransactions.SPEC, "transactions", "txs", "alltx");
 	}
 	
 	@Listener

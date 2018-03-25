@@ -10,7 +10,7 @@ import org.spongepowered.api.text.format.TextColors;
 @AllArgsConstructor
 public enum TransactionType {
 	DEPOSIT(Text.of(TextColors.DARK_GREEN, "D"), Text.of(TextColors.DARK_GREEN, "Deposit")),
-	WITHDRAW(Text.of(TextColors.DARK_RED, "W"), Text.of(TextColors.DARK_RED, "Withdraw")),
+	WITHDRAW(Text.of(TextColors.RED, "W"), Text.of(TextColors.RED, "Withdraw")),
 	TRANSFER(Text.of(TextColors.GOLD, "T"), Text.of(TextColors.GOLD, "Transfer"));
 	
 	private Text shortText;

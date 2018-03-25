@@ -19,8 +19,8 @@ import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.text.format.TextStyles;
 import org.spongepowered.api.text.serializer.TextSerializers;
 import pw.lemmmy.kristpay.KristPay;
-import pw.lemmmy.kristpay.database.TransactionType;
 import pw.lemmmy.kristpay.database.TransactionLogEntry;
+import pw.lemmmy.kristpay.database.TransactionType;
 import pw.lemmmy.kristpay.krist.MasterWallet;
 
 import java.net.MalformedURLException;

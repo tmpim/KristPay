@@ -65,9 +65,11 @@ public class AccountDatabase {
 			String privatekey = accountJSON.getString("depositPassword");
 			String owner = accountJSON.getString("owner");
 			int balance = accountJSON.getInt("balance");
+			int unseenDeposit = accountJSON.optInt("unseenDeposit", 0);
+			int unseenTransfer = accountJSON.optInt("unseenTransfer", 0);
 			
 			Wallet wallet = new Wallet(privatekey);
-			KristAccount account = new KristAccount(owner, wallet, balance);
+			KristAccount account = new KristAccount(owner, wallet, balance, unseenDeposit, unseenTransfer);
 			
 			accounts.put(owner, account);
 		});
@@ -86,6 +88,8 @@ public class AccountDatabase {
 			.put("owner", kristAccount.getOwner())
 			.put("balance", kristAccount.getBalance())
 			.put("depositPassword", kristAccount.getDepositWallet().getPassword())
+			.put("unseenDeposit", kristAccount.getUnseenDeposit())
+			.put("unseenTransfer", kristAccount.getUnseenTransfer())
 		));
 		
 		data.put("accounts", accountsJSON);

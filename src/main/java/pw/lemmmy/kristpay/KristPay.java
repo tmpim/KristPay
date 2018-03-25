@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.config.DefaultConfig;
+import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.event.game.GameReloadEvent;
@@ -16,21 +17,26 @@ import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.game.state.GameStoppedServerEvent;
+import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.channel.MessageReceiver;
+import org.spongepowered.api.text.format.TextColors;
 import pw.lemmmy.kristpay.commands.*;
 import pw.lemmmy.kristpay.config.Config;
 import pw.lemmmy.kristpay.config.ConfigLoader;
 import pw.lemmmy.kristpay.database.AccountDatabase;
 import pw.lemmmy.kristpay.database.Database;
+import pw.lemmmy.kristpay.economy.KristAccount;
 import pw.lemmmy.kristpay.economy.KristCurrency;
 import pw.lemmmy.kristpay.economy.KristEconomy;
 import pw.lemmmy.kristpay.krist.DepositManager;
 import pw.lemmmy.kristpay.krist.KristClientManager;
 import pw.lemmmy.kristpay.krist.MasterWallet;
+import sun.security.krb5.internal.util.KrbDataInputStream;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -115,6 +121,49 @@ public class KristPay {
 		if (isUp()) kristClientManager.stopClient();
 	}
 	
+	@Listener
+	public void playerJoin(ClientConnectionEvent.Join event, @First MessageReceiver receiver) {
+		Player player = event.getTargetEntity();
+		
+		if (economyService.hasAccount(player.getUniqueId())) { // dont create accounts for players who join then leave
+			economyService.getOrCreateAccount(player.getUniqueId()).ifPresent(uniqueAccount -> {
+				if (!(uniqueAccount instanceof KristAccount)) return;
+				KristAccount account = (KristAccount) uniqueAccount;
+				
+				Task.builder()
+					.execute(() -> {
+						int unseenDeposit = account.getUnseenDeposit();
+						int unseenTransfer = account.getUnseenTransfer();
+						
+						if (unseenDeposit > 0) player.sendMessage(Text.builder()
+							.append(CommandHelpers.formatKrist(unseenDeposit))
+							.append(Text.of(TextColors.GREEN, " was deposited into your account while you were offline."))
+							.build());
+						
+						if (unseenTransfer > 0) player.sendMessage(Text.builder()
+							.append(CommandHelpers.formatKrist(unseenTransfer))
+							.append(Text.of(TextColors.GREEN, " was transferred into your account while you were offline."))
+							.build());
+						
+						if (unseenDeposit > 0 || unseenTransfer > 0) player.sendMessage(Text.builder()
+							.append(Text.of(TextColors.GREEN, "Run "))
+							.append(Text.of(TextColors.AQUA, "/transactions"))
+							.append(Text.of(TextColors.GREEN, " to see your recent transactions."))
+							.onHover(TextActions.showText(Text.of(TextColors.AQUA, "/transactions")))
+							.onClick(TextActions.runCommand("/transactions"))
+							.build());
+						
+						account.setUnseenDeposit(0).setUnseenTransfer(0);
+						getAccountDatabase().save();
+					})
+					.async()
+					.delay(1, TimeUnit.SECONDS)
+					.name("KristPay - Offline transaction notifications")
+					.submit(INSTANCE);
+			});
+		}
+	}
+	
 	public boolean isUp() {
 		return kristClientManager != null && kristClientManager.getKristClient() != null && kristClientManager.isUp();
 	}
@@ -134,14 +183,14 @@ public class KristPay {
 				.async()
 				.interval(config.getDatabase().getSaveInterval(), TimeUnit.SECONDS)
 				.name("KristPay - Automatic account database save")
-				.submit(KristPay.INSTANCE);
+				.submit(INSTANCE);
 			
 			Task.builder().execute(() -> this.getAccountDatabase().syncWallets())
 				.async()
 				.delay(2, TimeUnit.MINUTES)
 				.interval(config.getDatabase().getLegacyWalletSyncInterval(), TimeUnit.SECONDS)
 				.name("KristPay - Legacy wallet sync")
-				.submit(KristPay.INSTANCE);
+				.submit(INSTANCE);
 		}
 		
 		if (database == null) {

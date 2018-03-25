@@ -18,8 +18,8 @@ import org.spongepowered.api.text.format.TextColor;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.text.format.TextStyles;
 import pw.lemmmy.kristpay.KristPay;
-import pw.lemmmy.kristpay.database.TransactionType;
 import pw.lemmmy.kristpay.database.TransactionLogEntry;
+import pw.lemmmy.kristpay.database.TransactionType;
 
 import java.text.SimpleDateFormat;
 import java.util.List;

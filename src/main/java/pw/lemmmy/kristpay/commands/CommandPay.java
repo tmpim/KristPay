@@ -8,6 +8,7 @@ import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.args.CommandElement;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.command.spec.CommandSpec;
+import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
@@ -17,12 +18,13 @@ import org.spongepowered.api.service.economy.transaction.TransferResult;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 import pw.lemmmy.kristpay.KristPay;
-import pw.lemmmy.kristpay.database.TransactionType;
 import pw.lemmmy.kristpay.database.TransactionLogEntry;
+import pw.lemmmy.kristpay.database.TransactionType;
 import pw.lemmmy.kristpay.economy.KristAccount;
 import pw.lemmmy.kristpay.krist.MasterWallet;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 
 import static org.spongepowered.api.command.args.GenericArguments.*;
 
@@ -120,15 +122,23 @@ public class CommandPay implements CommandExecutor {
 						.build()
 				);
 				
-				target.getPlayer().ifPresent(player -> player.sendMessage(
-					Text.builder()
-						.append(Text.of(TextColors.GREEN, "You have received "))
-						.append(CommandHelpers.formatKrist(result.getAmount()))
-						.append(Text.of(TextColors.GREEN, " from player "))
-						.append(Text.of(TextColors.YELLOW, owner.getName()))
-						.append(Text.of(TextColors.GREEN, "."))
-						.build()
-				));
+				Optional<Player> targetPlayerOpt = target.getPlayer();
+				
+				if (targetPlayerOpt.isPresent()) {
+					targetPlayerOpt.get().sendMessage(
+						Text.builder()
+							.append(Text.of(TextColors.GREEN, "You have received "))
+							.append(CommandHelpers.formatKrist(result.getAmount()))
+							.append(Text.of(TextColors.GREEN, " from player "))
+							.append(Text.of(TextColors.YELLOW, owner.getName()))
+							.append(Text.of(TextColors.GREEN, "."))
+							.build()
+					);
+				} else if (targetAccount instanceof KristAccount) {
+					KristAccount targetKristAccount = (KristAccount) targetAccount;
+					targetKristAccount.setUnseenTransfer(targetKristAccount.getUnseenTransfer() + amount);
+					KristPay.INSTANCE.getAccountDatabase().save();
+				}
 				
 				return CommandResult.success();
 			case ACCOUNT_NO_FUNDS:

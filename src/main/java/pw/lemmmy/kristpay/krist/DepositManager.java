@@ -1,6 +1,7 @@
 package pw.lemmmy.kristpay.krist;
 
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.EventContext;
@@ -13,8 +14,8 @@ import org.spongepowered.api.text.serializer.TextSerializers;
 import pw.lemmmy.kristpay.KristPay;
 import pw.lemmmy.kristpay.commands.CommandHelpers;
 import pw.lemmmy.kristpay.database.AccountDatabase;
-import pw.lemmmy.kristpay.database.TransactionType;
 import pw.lemmmy.kristpay.database.TransactionLogEntry;
+import pw.lemmmy.kristpay.database.TransactionType;
 import pw.lemmmy.kristpay.economy.KristAccount;
 
 import java.math.BigDecimal;
@@ -76,9 +77,12 @@ public class DepositManager {
 				.setTransaction(fromTx)
 				.addAsync();
 			
+			Optional<Player> playerOptional = Sponge.getServer().getPlayer(UUID.fromString(account.getOwner()));
+			
 			// notify player of their deposit if they are online
-			Sponge.getServer().getPlayer(UUID.fromString(account.getOwner())).ifPresent(player -> {
-				if (!player.isOnline()) return; // TODO: queue deposit message until next time player is on
+			if (playerOptional.isPresent()) {
+				Player player = playerOptional.get();
+				if (!player.isOnline()) return;
 				
 				Text.Builder builder = Text.builder()
 					.append(CommandHelpers.formatKrist(depositAmount))
@@ -116,7 +120,10 @@ public class DepositManager {
 				}
 				
 				player.sendMessage(builder.build());
-			});
+			} else {
+				account.setUnseenDeposit(account.getUnseenDeposit() + depositAmount);
+				KristPay.INSTANCE.getAccountDatabase().save();
+			}
 		});
 	}
 	

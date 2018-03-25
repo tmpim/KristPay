@@ -1,6 +1,5 @@
 package pw.lemmmy.kristpay.commands;
 
-import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
@@ -41,12 +40,12 @@ public class CommandHelpers {
 		if (address == null) return Text.of(TextStyles.ITALIC, TextColors.GRAY, "unknown");
 		
 		Matcher nameMatcher = NAME_PATTERN.matcher(address);
-		TextColor colour = nameMatcher.matches() ? TextColors.AQUA : TextColors.BLUE;
+		// TextColor colour = nameMatcher.matches() ? TextColors.AQUA : TextColors.BLUE;
 		URL url = nameMatcher.matches() ? getKristWebURL("names", nameMatcher.group(1))
 										: getKristWebURL("addresses", address);
 		
 		return Text.builder()
-			.append(Text.of(colour, address))
+			.append(Text.of(TextColors.YELLOW, address))
 			.onHover(TextActions.showText(Text.of(TextColors.AQUA, url.toString())))
 			.onClick(TextActions.openUrl(url))
 			.build();

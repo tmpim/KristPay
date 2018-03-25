@@ -1,6 +1,7 @@
 package pw.lemmmy.kristpay.economy;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.val;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.service.context.Context;
@@ -27,6 +28,8 @@ public class KristAccount implements UniqueAccount {
 	private String owner;
 	private Wallet depositWallet;
 	private int balance = 0;
+	private int unseenDeposit = 0;
+	private int unseenTransfer = 0;
 	
 	private boolean needsSave = false;
 	
@@ -37,10 +40,24 @@ public class KristAccount implements UniqueAccount {
 		needsSave = true;
 	}
 	
-	public KristAccount(String owner, Wallet depositWallet, int balance) {
+	public KristAccount(String owner, Wallet depositWallet, int balance, int unseenDeposit, int unseenTransfer) {
 		this.owner = owner;
 		this.depositWallet = depositWallet;
 		this.balance = balance;
+		this.unseenDeposit = unseenDeposit;
+		this.unseenTransfer = unseenTransfer;
+	}
+	
+	public KristAccount setUnseenDeposit(int unseenDeposit) {
+		this.unseenDeposit = unseenDeposit;
+		needsSave = true;
+		return this;
+	}
+	
+	public KristAccount setUnseenTransfer(int unseenTransfer) {
+		this.unseenTransfer = unseenTransfer;
+		needsSave = true;
+		return this;
 	}
 	
 	@Override
@@ -124,8 +141,6 @@ public class KristAccount implements UniqueAccount {
 	
 	@Override
 	public TransactionResult setBalance(Currency currency, BigDecimal amount, Cause cause, Set<Context> contexts) {
-		int oldBalance = this.balance;
-		
 		if (amount.intValue() < 0) { // balance should never be negative
 			return new KristTransactionResult(this, amount, contexts, ResultType.FAILED, TransactionTypes.WITHDRAW, null);
 		}
@@ -148,7 +163,6 @@ public class KristAccount implements UniqueAccount {
 				return new KristTransactionResult(this, BigDecimal.valueOf(increase), contexts, ResultType.SUCCESS, TransactionTypes.DEPOSIT, null);
 			}
 		} else if (delta > 0) { // decrease in balance
-			int decrease = Math.abs(delta); // use this in log
 			balance = amount.intValue();
 			KristPay.INSTANCE.getAccountDatabase().save();
 			return new KristTransactionResult(this, BigDecimal.valueOf(Math.abs(delta)), contexts, ResultType.SUCCESS, TransactionTypes.WITHDRAW, null);

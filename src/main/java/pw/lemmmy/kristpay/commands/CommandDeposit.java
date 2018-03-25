@@ -21,7 +21,7 @@ public class CommandDeposit implements CommandExecutor {
 	public static final CommandSpec SPEC = CommandSpec.builder()
 		.description(Text.of("Shows your deposit address."))
 		.permission("kristpay.command.deposit.base")
-		.arguments(flags().flag("-legacy").buildWith(none()))
+		.arguments(flags().flag("-mining").buildWith(none()))
 		.executor(new CommandDeposit())
 		.build();
 	
@@ -34,10 +34,10 @@ public class CommandDeposit implements CommandExecutor {
 		KristAccount ownerAccount = (KristAccount) ECONOMY_SERVICE.getOrCreateAccount(owner.getUniqueId())
 			.orElseThrow(() -> new CommandException(Text.of("Failed to find your account.")));
 		
-		if (args.hasAny("legacy")) {
+		if (args.hasAny("mining")) {
 			src.sendMessage(Text.builder()
 				.append(Text.of(TextColors.GREEN, "Your "))
-				.append(Text.of(TextColors.RED, TextStyles.BOLD, "legacy"))
+				.append(Text.of(TextColors.AQUA, TextStyles.ITALIC, "mining"))
 				.append(Text.of(TextColors.GREEN, " deposit address: "))
 				.append(CommandHelpers.formatAddress(ownerAccount.getDepositWallet().getAddress()))
 				.build()

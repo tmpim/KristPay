@@ -8,15 +8,11 @@ import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.service.economy.EconomyService;
-import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.text.format.TextStyles;
 import pw.lemmmy.kristpay.KristPay;
 import pw.lemmmy.kristpay.economy.KristAccount;
-
-import java.util.Optional;
-import java.util.UUID;
 
 import static org.spongepowered.api.command.args.GenericArguments.flags;
 import static org.spongepowered.api.command.args.GenericArguments.none;

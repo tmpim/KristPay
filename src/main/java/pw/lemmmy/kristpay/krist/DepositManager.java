@@ -137,12 +137,10 @@ public class DepositManager {
 		int amount = transaction.getValue();
 		
 		Optional<Map<String, String>> commonMetaOpt = KristAPI.parseCommonMeta(transaction.getMetadata());
-		
 		if (!commonMetaOpt.isPresent()) {
 			refundDeposit(fromAddress, amount, "Could not parse CommonMeta");
 			return;
 		}
-		
 		Map<String, String> commonMeta = commonMetaOpt.get();
 		
 		if (commonMeta.containsKey("donate") && commonMeta.get("donate").trim().equalsIgnoreCase("true")) {

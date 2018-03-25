@@ -14,7 +14,6 @@ import org.spongepowered.api.service.economy.transaction.TransferResult;
 import org.spongepowered.api.text.Text;
 import pw.lemmmy.kristpay.KristPay;
 import pw.lemmmy.kristpay.Utils;
-import pw.lemmmy.kristpay.database.Database;
 import pw.lemmmy.kristpay.krist.Wallet;
 
 import java.math.BigDecimal;

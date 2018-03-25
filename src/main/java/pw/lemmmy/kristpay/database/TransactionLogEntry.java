@@ -1,29 +1,32 @@
 package pw.lemmmy.kristpay.database;
 
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.experimental.Accessors;
+import org.apache.commons.lang3.StringUtils;
 import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.service.economy.transaction.TransferResult;
+import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.format.TextColors;
 import pw.lemmmy.kristpay.KristPay;
 import pw.lemmmy.kristpay.economy.KristTransactionResult;
 import pw.lemmmy.kristpay.economy.KristTransferResult;
 import pw.lemmmy.kristpay.krist.KristTransaction;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.Map;
 import java.util.Optional;
 
 @Data
 @Accessors(chain = true)
 public class TransactionLogEntry {
+	private int id;
+	
 	private boolean success;
 	private String error;
 	private String type;
@@ -37,6 +40,7 @@ public class TransactionLogEntry {
 	private String metaMessage;
 	private String metaError;
 	private int kristTXID = -1;
+	private Timestamp time;
 	
 	public TransactionLogEntry() {}
 	
@@ -99,8 +103,8 @@ public class TransactionLogEntry {
 	public TransactionLogEntry addAsync() {
 		Task.builder().execute(() -> {
 			String query = "INSERT INTO tx_log (success, error, type, from_account, to_account, from_address, " +
-				"dest_address, to_address, amount, return_address, meta_message, meta_error, krist_txid) " +
-				"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+				"dest_address, to_address, amount, return_address, meta_message, meta_error, krist_txid, time) " +
+				"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 			
 			try (Connection conn = KristPay.INSTANCE.getDatabase().getDataSource().getConnection();
 				 PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -117,6 +121,7 @@ public class TransactionLogEntry {
 				stmt.setString(11, metaMessage);
 				stmt.setString(12, metaError);
 				stmt.setInt(13, kristTXID);
+				stmt.setTimestamp(14, new Timestamp(System.currentTimeMillis()));
 				stmt.executeUpdate();
 			} catch (SQLException e) {
 				e.printStackTrace();
@@ -127,7 +132,7 @@ public class TransactionLogEntry {
 	}
 	
 	private static PreparedStatement prepareGetEntry(Connection conn, int id) throws SQLException {
-		String query = "SELECT * FROM tx_log WHERE id = ?";
+		String query = "SELECT * FROM tx_log WHERE id = ? LIMIT 1";
 		PreparedStatement stmt = conn.prepareStatement(query);
 		stmt.setInt(1, id);
 		return stmt;
@@ -137,7 +142,11 @@ public class TransactionLogEntry {
 		try (Connection conn = data.getConnection();
 			 PreparedStatement stmt = prepareGetEntry(conn, id);
 			 ResultSet results = stmt.executeQuery()) {
+			if (!results.next()) return Optional.empty();
+			
 			TransactionLogEntry entry = new TransactionLogEntry();
+			
+			entry.id = results.getInt("id");
 			
 			entry.success = results.getBoolean("success");
 			entry.error = results.getString("error");
@@ -152,16 +161,40 @@ public class TransactionLogEntry {
 			entry.metaMessage = results.getString("meta_message");
 			entry.metaError = results.getString("meta_error");
 			entry.kristTXID = results.getInt("krist_txid");
+			entry.time = results.getTimestamp("time");
 			
 			return Optional.of(entry);
 		} catch (SQLException e) {
-			e.printStackTrace();
+			KristPay.INSTANCE.getLogger().error("Error getting transaction", e);
 		}
 		
 		return Optional.empty();
 	}
 	
+	@Getter
+	@AllArgsConstructor
 	public enum EntryType {
-		DEPOSIT, WITHDRAW, TRANSFER
+		DEPOSIT(Text.of(TextColors.DARK_GREEN, "D"), Text.of(TextColors.DARK_GREEN, "Deposit")),
+		WITHDRAW(Text.of(TextColors.DARK_RED, "W"), Text.of(TextColors.DARK_RED, "Withdraw")),
+		TRANSFER(Text.of(TextColors.GOLD, "T"), Text.of(TextColors.GOLD, "Transfer"));
+		
+		private Text shortText;
+		private Text longText;
+		
+		public static Text getShortTextOf(String type) {
+			try {
+				return valueOf(type.toUpperCase()).shortText;
+			} catch (Exception ignored) {
+				return Text.of(TextColors.GRAY, ("" + type.charAt(1)).toUpperCase());
+			}
+		}
+		
+		public static Text getLongTextOf(String type) {
+			try {
+				return valueOf(type.toUpperCase()).longText;
+			} catch (Exception ignored) {
+				return Text.of(TextColors.GRAY, StringUtils.capitalize(type));
+			}
+		}
 	}
 }

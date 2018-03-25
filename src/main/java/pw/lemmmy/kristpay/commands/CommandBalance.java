@@ -14,7 +14,6 @@ import org.spongepowered.api.text.format.TextColors;
 import pw.lemmmy.kristpay.KristPay;
 
 import java.util.Optional;
-import java.util.UUID;
 
 import static org.spongepowered.api.command.args.GenericArguments.*;
 

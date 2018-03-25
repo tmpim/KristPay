@@ -46,6 +46,7 @@ public class Database {
 			"meta_message VARCHAR(255)," +
 			"meta_error VARCHAR(255)," +
 			"krist_txid INT," +
+			"time TIMESTAMP," +
 			"PRIMARY KEY (id)" +
 		");";
 		

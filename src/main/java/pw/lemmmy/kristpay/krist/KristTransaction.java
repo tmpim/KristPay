@@ -2,7 +2,6 @@ package pw.lemmmy.kristpay.krist;
 
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import org.json.JSONObject;
 
 import java.time.ZonedDateTime;

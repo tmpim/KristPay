@@ -22,8 +22,6 @@ import pw.lemmmy.kristpay.economy.KristAccount;
 import pw.lemmmy.kristpay.krist.MasterWallet;
 
 import java.math.BigDecimal;
-import java.util.Optional;
-import java.util.UUID;
 
 import static org.spongepowered.api.command.args.GenericArguments.*;
 

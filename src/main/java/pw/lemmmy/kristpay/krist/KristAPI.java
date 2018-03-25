@@ -110,7 +110,7 @@ public class KristAPI {
 			String[] kv = metaPart.split("=", 2);
 			
 			if (kv.length == 1) { // no key specified, use argn as key
-				parts.put(String.valueOf(i), kv[0]); // TODO: consider handling cases where the meta actually has numeric keys?
+				parts.put(String.valueOf(i), kv[0]);
 			} else {
 				parts.put(kv[0], kv[1]);
 			}

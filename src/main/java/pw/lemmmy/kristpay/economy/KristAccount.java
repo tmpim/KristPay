@@ -140,7 +140,6 @@ public class KristAccount implements UniqueAccount {
 			int increase = Math.abs(delta);
 			
 			if (increase > available) {
-				// TODO: log result (failed, master wallet can't fund)
 				return new KristTransactionResult(this, BigDecimal.valueOf(0), contexts, ResultType.FAILED,
 					TransactionTypes.DEPOSIT, "Master wallet can't fund this.");
 			} else {

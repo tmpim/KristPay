@@ -74,7 +74,6 @@ public class CommandPay implements CommandExecutor {
 						" instead, add the "))
 					.append(Text.of(TextColors.GREEN, "-k "))
 					.append(Text.of(TextColors.YELLOW, "flag. "))
-					.append(Text.of(TextColors.GOLD, "This warning will not be shown again.")) // TODO: lol
 					.build()
 				);
 			}

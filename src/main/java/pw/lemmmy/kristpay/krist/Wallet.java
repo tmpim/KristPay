@@ -43,11 +43,7 @@ public class Wallet {
 			
 			if (opt.isPresent()) {
 				syncWithNode(success -> {
-					if (!success) {
-						// TODO: handle this better?
-						balance -= amount;
-					}
-					
+					if (!success) balance -= amount;
 					callback.accept(true, opt.get());
 				});
 			} else {

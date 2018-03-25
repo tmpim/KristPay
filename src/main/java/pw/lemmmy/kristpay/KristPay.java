@@ -89,7 +89,7 @@ public class KristPay {
 		receiver.sendMessage(Text.of("Reloading KristPay."));
 		kristClientManager.stopClient();
 		try {
-			accountDatabase.load(); // todo: clear db before loading
+			accountDatabase.load();
 			database.load();
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -130,15 +130,16 @@ public class KristPay {
 				logger.error("Error loading KristPay account database", e);
 			}
 			
-			// TODO: configurable interval
 			Task.builder().execute(() -> this.getAccountDatabase().save())
-				.async().interval(30, TimeUnit.SECONDS)
+				.async()
+				.interval(config.getDatabase().getSaveInterval(), TimeUnit.SECONDS)
 				.name("KristPay - Automatic account database save")
 				.submit(KristPay.INSTANCE);
 			
-			// TODO: configurable interval
 			Task.builder().execute(() -> this.getAccountDatabase().syncWallets())
-				.async().delay(2, TimeUnit.MINUTES).interval(10, TimeUnit.MINUTES)
+				.async()
+				.delay(2, TimeUnit.MINUTES)
+				.interval(config.getDatabase().getLegacyWalletSyncInterval(), TimeUnit.SECONDS)
 				.name("KristPay - Legacy wallet sync")
 				.submit(KristPay.INSTANCE);
 		}

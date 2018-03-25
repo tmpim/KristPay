@@ -51,6 +51,8 @@ public class AccountDatabase {
 	}
 	
 	public void load() throws IOException, JSONException {
+		accounts.clear();
+		
 		JSONObject data = (JSONObject) new JSONTokener(new String(Files.readAllBytes(dbFile.toPath()))).nextValue();
 		
 		if (!data.has("accounts")) throw new RuntimeException("KristPay config has no 'accounts' entry");

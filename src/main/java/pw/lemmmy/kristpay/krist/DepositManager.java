@@ -130,7 +130,7 @@ public class DepositManager {
 			findAccountByAddress(address).ifPresent(account -> handleDeposit(account, transaction, null, transaction.getValue()));
 		}
 		
-		masterWallet.syncWithNode(cb -> {}); // TODO: does anything need to be handled here?
+		masterWallet.syncWithNode(cb -> {});
 	}
 	
 	private void handleNameTransaction(KristTransaction transaction) {

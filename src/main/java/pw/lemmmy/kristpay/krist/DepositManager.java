@@ -104,7 +104,7 @@ public class DepositManager {
 				builder.append(Text.of(TextColors.GREEN, "."));
 				
 				if (meta != null && meta.containsKey("error")) {
-					Text error = TextSerializers.FORMATTING_CODE.deserialize(meta.get("error"));
+					Text error = TextSerializers.FORMATTING_CODE.deserialize(meta.get("error").replaceAll("&r", "&r&c"));
 					
 					builder.append(Text.of("\n"))
 						.append(Text.of(TextColors.DARK_RED, "Error: "))

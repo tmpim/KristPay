@@ -118,7 +118,7 @@ public class CommandTransactions implements CommandExecutor {
 				.append(Text.of(" "))
 				.append(from.get())
 				.append(Text.of(TextColors.WHITE, " \u27a1 "))
-				.append(CommandHelpers.formatKrist(entry.getAmount(), TextColors.GREEN))
+				.append(CommandHelpers.formatKrist(entry.getAmount(), successColour))
 				.append(Text.of(TextColors.WHITE, " \u27a1 "))
 				.append(to.get())
 				.onClick(TextActions.runCommand("/transaction " + entry.getId()))

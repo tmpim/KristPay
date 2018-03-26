@@ -38,6 +38,11 @@ public class Wallet {
 			return;
 		}
 		
+		if (address.equalsIgnoreCase(to)) {
+			callback.accept(true, null);
+			return;
+		}
+		
 		try {
 			Optional<KristTransaction> opt = KristAPI.makeTransaction(privatekey, to, amount, metadata);
 			

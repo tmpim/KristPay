@@ -178,7 +178,7 @@ public class CommandTransaction implements CommandExecutor {
 		
 		if (entry.getMetaError() != null) contents.add(Text.builder()
 			.append(Text.of(TextColors.DARK_RED, "Error: "))
-			.append(Text.of(TextColors.RED, TextSerializers.FORMATTING_CODE.deserialize(entry.getMetaError())))
+			.append(Text.of(TextColors.RED, TextSerializers.FORMATTING_CODE.deserialize(entry.getMetaError().replaceAll("&r", "&r&c"))))
 			.build());
 		
 		pagination.contents(contents).sendTo(src);

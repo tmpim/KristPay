@@ -59,8 +59,8 @@ public class AccountDatabase {
 		
 		JSONArray accountsJSON = data.getJSONArray("accounts");
 		
-		accountsJSON.forEach(accountObject -> {
-			JSONObject accountJSON = (JSONObject) accountObject;
+		for (int i = 0; i < accountsJSON.length(); i++) {
+			JSONObject accountJSON = accountsJSON.getJSONObject(i);
 			
 			String privatekey = accountJSON.getString("depositPassword");
 			String owner = accountJSON.getString("owner");
@@ -72,7 +72,7 @@ public class AccountDatabase {
 			KristAccount account = new KristAccount(owner, wallet, balance, unseenDeposit, unseenTransfer);
 			
 			accounts.put(owner, account);
-		});
+		}
 		
 		accounts.values().stream()
 			.filter(KristAccount::isNeedsSave)

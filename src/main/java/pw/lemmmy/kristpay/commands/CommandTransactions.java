@@ -2,12 +2,14 @@ package pw.lemmmy.kristpay.commands;
 
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandException;
+import org.spongepowered.api.command.CommandMessageFormatting;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.entity.living.player.User;
+import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.pagination.PaginationList;
@@ -47,7 +49,24 @@ public class CommandTransactions implements CommandExecutor {
 	private static final SimpleDateFormat largeTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	
 	@Override
-	public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
+	public CommandResult execute(CommandSource src, CommandContext args) {
+		Task.builder()
+			.execute(() -> {
+				try {
+					handleCommand(src, args);
+				} catch (CommandException e) {
+					Text eText = e.getText();
+					if (eText != null) src.sendMessage(CommandMessageFormatting.error(eText));
+				}
+			})
+			.async()
+			.name("KristPay - /transactions command")
+			.submit(KristPay.INSTANCE);
+		
+		return CommandResult.success();
+	}
+	
+	private void handleCommand(CommandSource src, CommandContext args) throws CommandException {
 		List<TransactionLogEntry> entries;
 		
 		if (args.hasAny("g") && src.hasPermission("kristpay.command.transactions.others")) {
@@ -70,8 +89,6 @@ public class CommandTransactions implements CommandExecutor {
 		}
 		
 		listEntries(src, entries, src instanceof User ? (User) src : null);
-		
-		return CommandResult.success();
 	}
 	
 	private void listEntries(CommandSource src, List<TransactionLogEntry> entries, User self) {

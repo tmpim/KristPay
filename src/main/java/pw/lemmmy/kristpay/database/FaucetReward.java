@@ -2,14 +2,13 @@ package pw.lemmmy.kristpay.database;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.spongepowered.api.scheduler.Task;
+import org.spongepowered.api.service.economy.account.UniqueAccount;
 import pw.lemmmy.kristpay.KristPay;
 
 import javax.sql.DataSource;
 import java.net.InetSocketAddress;
 import java.sql.*;
 import java.util.Optional;
-import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
@@ -17,7 +16,7 @@ public class FaucetReward {
 	private int id;
 	
 	private String ip;
-	private String userID;
+	private String account;
 	private int value;
 	private int rewardTier;
 	private Timestamp time;
@@ -31,40 +30,38 @@ public class FaucetReward {
 		return this;
 	}
 	
-	public FaucetReward setUserID(UUID uuid) {
-		userID = uuid.toString();
+	public FaucetReward setAccount(UniqueAccount account) {
+		this.account = account.getIdentifier();
 		return this;
 	}
 	
-	public FaucetReward setTimestamps(long timeAway) {
+	public FaucetReward setTimestamps(long minimumTime, long expireTime) {
 		long currentTime = System.currentTimeMillis();
 		
 		time = new Timestamp(currentTime);
-		minimum = new Timestamp(currentTime + timeAway);
-		expires = new Timestamp(currentTime + (timeAway * 2));
+		minimum = new Timestamp(currentTime + minimumTime);
+		expires = new Timestamp(currentTime + expireTime);
 		
 		return this;
 	}
 	
-	public FaucetReward addAsync() {
-		Task.builder().execute(() -> {
-			String query = "INSERT INTO faucet_rewards (ip, user_id, value, reward_tier, time, minimum, expires)" +
-				"VALUES (?, ?, ?, ?, ?, ?, ?)";
-			
-			try (Connection conn = KristPay.INSTANCE.getDatabase().getDataSource().getConnection();
-				 PreparedStatement stmt = conn.prepareStatement(query)) {
-				stmt.setString(1, ip);
-				stmt.setString(2, userID);
-				stmt.setInt(3, value);
-				stmt.setInt(4, rewardTier);
-				stmt.setTimestamp(5, time);
-				stmt.setTimestamp(6, minimum);
-				stmt.setTimestamp(7, expires);
-				stmt.executeUpdate();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-		}).async().name("KristPay - Faucet Reward").submit(KristPay.INSTANCE);
+	public FaucetReward add() {
+		String query = "INSERT INTO faucet_rewards (ip, account, value, reward_tier, time, minimum, expires)" +
+			"VALUES (?, ?, ?, ?, ?, ?, ?)";
+		
+		try (Connection conn = KristPay.INSTANCE.getDatabase().getDataSource().getConnection();
+			 PreparedStatement stmt = conn.prepareStatement(query)) {
+			stmt.setString(1, ip);
+			stmt.setString(2, account);
+			stmt.setInt(3, value);
+			stmt.setInt(4, rewardTier);
+			stmt.setTimestamp(5, time);
+			stmt.setTimestamp(6, minimum);
+			stmt.setTimestamp(7, expires);
+			stmt.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 		
 		return this;
 	}
@@ -75,7 +72,7 @@ public class FaucetReward {
 		reward.id = results.getInt("id");
 		
 		reward.ip = results.getString("ip");
-		reward.userID = results.getString("user_id");
+		reward.account = results.getString("account");
 		reward.value = results.getInt("value");
 		reward.rewardTier = results.getInt("reward_tier");
 		reward.time = results.getTimestamp("time");
@@ -85,21 +82,21 @@ public class FaucetReward {
 		return reward;
 	}
 	
-	private static PreparedStatement prepareGetLastReward(Connection conn, String ip, String userID) throws SQLException {
-		String query = "SELECT * FROM faucet_rewards WHERE ip = ? OR user_id = ? ORDER BY time DESC LIMIT 1";
+	private static PreparedStatement prepareGetLastReward(Connection conn, String ip, String account) throws SQLException {
+		String query = "SELECT * FROM faucet_rewards WHERE ip = ? OR account = ? ORDER BY time DESC LIMIT 1";
 		PreparedStatement stmt = conn.prepareStatement(query);
 		stmt.setString(1, ip);
-		stmt.setString(2, userID);
+		stmt.setString(2, account);
 		return stmt;
 	}
 	
-	public static Optional<FaucetReward> getLastReward(DataSource data, InetSocketAddress address, UUID uuid) {
-		return getLastReward(data, address.getAddress().toString(), uuid.toString());
+	public static Optional<FaucetReward> getLastReward(DataSource data, InetSocketAddress address, UniqueAccount account) {
+		return getLastReward(data, address.getAddress().toString(), account.getIdentifier());
 	}
 	
-	public static Optional<FaucetReward> getLastReward(DataSource data, String ip, String userID) {
+	public static Optional<FaucetReward> getLastReward(DataSource data, String ip, String account) {
 		try (Connection conn = data.getConnection();
-			 PreparedStatement stmt = prepareGetLastReward(conn, ip, userID);
+			 PreparedStatement stmt = prepareGetLastReward(conn, ip, account);
 			 ResultSet results = stmt.executeQuery()) {
 			if (!results.next()) return Optional.empty();
 			return Optional.of(populateReward(results));

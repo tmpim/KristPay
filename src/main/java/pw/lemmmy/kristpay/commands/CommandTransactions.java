@@ -116,7 +116,7 @@ public class CommandTransactions implements CommandExecutor {
 			if (entry.getToAccount() != null) userStorage.get(UUID.fromString(entry.getToAccount()))
 				.ifPresent(user -> to.set(CommandHelpers.formatUser(self, user)));
 			
-			return Text.builder()
+			Text.Builder builder = Text.builder()
 				// date
 				.append(Text.builder()
 					.append(Text.of(successColour, timeFormat.format(entry.getTime())))
@@ -132,12 +132,27 @@ public class CommandTransactions implements CommandExecutor {
 					.append(Text.of(TextStyles.BOLD, TransactionType.getShortTextOf(entry.getType())))
 					.onHover(TextActions.showText(TransactionType.getLongTextOf(entry.getType())))
 					.build())
-				.append(Text.of(" "))
-				.append(from.get())
-				.append(Text.of(TextColors.WHITE, " \u27a1 "))
-				.append(CommandHelpers.formatKrist(entry.getAmount(), successColour))
-				.append(Text.of(TextColors.WHITE, " \u27a1 "))
-				.append(to.get())
+				.append(Text.of(" "));
+			
+			switch (TransactionType.valueOf(entry.getType().toUpperCase())) {
+				case FAUCET:
+					builder
+						.append(Text.of(TextColors.YELLOW, "Redeemed "))
+						.append(CommandHelpers.formatKrist(entry.getAmount(), successColour));
+					break;
+				case DEPOSIT:
+				case WITHDRAW:
+				case TRANSFER:
+					builder
+						.append(from.get())
+						.append(Text.of(TextColors.WHITE, " \u27a1 "))
+						.append(CommandHelpers.formatKrist(entry.getAmount(), successColour))
+						.append(Text.of(TextColors.WHITE, " \u27a1 "))
+						.append(to.get());
+					break;
+			}
+			
+			return builder
 				.onClick(TextActions.runCommand("/transaction " + entry.getId()))
 				.build();
 		}).collect(Collectors.toList())).sendTo(src);

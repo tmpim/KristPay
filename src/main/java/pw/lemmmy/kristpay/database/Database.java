@@ -53,7 +53,7 @@ public class Database {
 		String faucetRewardTable = "CREATE TABLE IF NOT EXISTS faucet_rewards (" +
 			"id INT NOT NULL AUTO_INCREMENT," +
 			"ip VARCHAR(255)," +
-			"user_id VARCHAR(255)," +
+			"account VARCHAR(255)," +
 			"value INT," +
 			"reward_tier INT," +
 			"time TIMESTAMP," +

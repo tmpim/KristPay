@@ -11,7 +11,8 @@ import org.spongepowered.api.text.format.TextColors;
 public enum TransactionType {
 	DEPOSIT(Text.of(TextColors.DARK_GREEN, "D"), Text.of(TextColors.DARK_GREEN, "Deposit")),
 	WITHDRAW(Text.of(TextColors.RED, "W"), Text.of(TextColors.RED, "Withdraw")),
-	TRANSFER(Text.of(TextColors.GOLD, "T"), Text.of(TextColors.GOLD, "Transfer"));
+	TRANSFER(Text.of(TextColors.GOLD, "T"), Text.of(TextColors.GOLD, "Transfer")),
+	FAUCET(Text.of(TextColors.AQUA, "F"), Text.of(TextColors.AQUA, "Faucet"));
 	
 	private Text shortText;
 	private Text longText;

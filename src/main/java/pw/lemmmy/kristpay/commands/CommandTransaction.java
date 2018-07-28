@@ -2,12 +2,14 @@ package pw.lemmmy.kristpay.commands;
 
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandException;
+import org.spongepowered.api.command.CommandMessageFormatting;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.entity.living.player.User;
+import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
 import org.spongepowered.api.service.pagination.PaginationList;
@@ -54,6 +56,26 @@ public class CommandTransaction implements CommandExecutor {
 		int id = args.<Integer>getOne("id")
 			.orElseThrow(() -> new CommandException(Text.of("Must specify a valid transaction ID.")));
 		
+		Task.builder()
+			.execute(() -> {
+				try {
+					handleCommand(src, userStorage, masterWallet, allowOthers, id);
+				} catch (CommandException e) {
+					Text eText = e.getText();
+					if (eText != null) src.sendMessage(CommandMessageFormatting.error(eText));
+				}
+			})
+			.async()
+			.name("KristPay - /transaction command")
+			.submit(KristPay.INSTANCE);
+		
+		return CommandResult.success();
+	}
+	
+	private void handleCommand(CommandSource src,
+							   UserStorageService userStorage,
+							   MasterWallet masterWallet,
+							   boolean allowOthers, int id) throws CommandException {
 		TransactionLogEntry entry = TransactionLogEntry.getEntry(KristPay.INSTANCE.getDatabase().getDataSource(), id)
 			.orElseThrow(() -> new CommandException(Text.of("Could not find that transaction.")));
 		
@@ -77,7 +99,8 @@ public class CommandTransaction implements CommandExecutor {
 			.title(Text.builder()
 				.append(Text.of(successColour, "Transaction "))
 				.append(Text.of(TextColors.YELLOW, entry.getId()))
-				.onHover(TextActions.showText(Text.of(successColour, entry.isSuccess() ? "Successful Transaction" : "Failed Transaction")))
+				.onHover(TextActions
+					.showText(Text.of(successColour, entry.isSuccess() ? "Successful Transaction" : "Failed Transaction")))
 				.build());
 		
 		List<Text> contents = new ArrayList<>();
@@ -182,7 +205,6 @@ public class CommandTransaction implements CommandExecutor {
 			.build());
 		
 		pagination.contents(contents).sendTo(src);
-		return CommandResult.success();
 	}
 	
 	private URL getKristTransactionURL(TransactionLogEntry entry) throws CommandException {

@@ -30,6 +30,8 @@ import pw.lemmmy.kristpay.config.Config;
 import pw.lemmmy.kristpay.config.ConfigLoader;
 import pw.lemmmy.kristpay.database.AccountDatabase;
 import pw.lemmmy.kristpay.database.Database;
+import pw.lemmmy.kristpay.database.FaucetReward;
+import pw.lemmmy.kristpay.economy.FaucetManager;
 import pw.lemmmy.kristpay.economy.KristAccount;
 import pw.lemmmy.kristpay.economy.KristCurrency;
 import pw.lemmmy.kristpay.economy.KristEconomy;
@@ -39,6 +41,7 @@ import pw.lemmmy.kristpay.krist.MasterWallet;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Plugin(id = "kristpay", name = "KristPay", version = "2.0")
@@ -159,6 +162,32 @@ public class KristPay {
 					.async()
 					.delay(1, TimeUnit.SECONDS)
 					.name("KristPay - Offline transaction notifications")
+					.submit(INSTANCE);
+				
+				Task.builder()
+					.execute(() -> {
+						Optional<FaucetReward> lastRewardOpt = FaucetReward.getLastReward(
+							KristPay.INSTANCE.getDatabase().getDataSource(),
+							player.getConnection().getAddress(), account
+						);
+						
+						// start them on the first tier if they haven't claimed a reward before
+						int nextTier = lastRewardOpt.map(FaucetManager::getNextRewardTier).orElse(0);
+						if (nextTier <= -1) return; // don't notify if they've already redeemed
+						
+						player.sendMessage(Text.builder()
+							.append(Text.of(TextColors.GREEN, "You have not yet redeemed your faucet reward of "))
+							.append(CommandHelpers.formatKrist(FaucetManager.getRewardValue(nextTier)))
+							.append(Text.of(TextColors.GREEN, ". Run "))
+							.append(Text.of(TextColors.AQUA, "/faucet"))
+							.append(Text.of(TextColors.GREEN, " to redeem it!"))
+							.onHover(TextActions.showText(Text.of(TextColors.AQUA, "/faucet")))
+							.onClick(TextActions.runCommand("/faucet"))
+							.build());
+					})
+					.async()
+					.delay(1250, TimeUnit.MILLISECONDS)
+					.name("KristPay - Faucet notifications")
 					.submit(INSTANCE);
 			});
 		}

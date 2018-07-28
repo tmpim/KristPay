@@ -36,7 +36,6 @@ import pw.lemmmy.kristpay.economy.KristEconomy;
 import pw.lemmmy.kristpay.krist.DepositManager;
 import pw.lemmmy.kristpay.krist.KristClientManager;
 import pw.lemmmy.kristpay.krist.MasterWallet;
-import sun.security.krb5.internal.util.KrbDataInputStream;
 
 import java.io.IOException;
 import java.nio.file.Path;

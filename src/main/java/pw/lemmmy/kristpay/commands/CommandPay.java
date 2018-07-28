@@ -44,7 +44,8 @@ public class CommandPay implements CommandExecutor {
 		.arguments(
 			flags().flag("k").buildWith(none()),
 			TARGET_ELEMENT,
-			AMOUNT_ELEMENT
+			AMOUNT_ELEMENT,
+			optional(remainingJoinedStrings(Text.of("meta")))
 		)
 		.executor(new CommandPay())
 		.build();
@@ -89,7 +90,9 @@ public class CommandPay implements CommandExecutor {
 			if (!target.matches(KRIST_TRANSFER_PATTERN))
 				throw new CommandException(Text.of("Must specify a valid user or address to pay to."));
 			
-			return payAddress(src, owner, ownerAccount, target, amount);
+			String meta = args.<String>getOne("meta").orElse("");
+			
+			return payAddress(src, owner, ownerAccount, target, amount, meta);
 		}
 	}
 	
@@ -156,7 +159,7 @@ public class CommandPay implements CommandExecutor {
 	}
 	
 	private CommandResult payAddress(CommandSource src, User owner, UniqueAccount ownerAccount, String target,
-									 int amount) throws CommandException {
+									 int amount, String meta) throws CommandException {
 		TransactionResult result = ownerAccount.withdraw(
 			KristPay.INSTANCE.getCurrency(),
 			BigDecimal.valueOf(amount),
@@ -187,7 +190,25 @@ public class CommandPay implements CommandExecutor {
 					.append("username=")
 					.append(owner.getName());
 				
-				masterWallet.transfer(target, amount, metadata.toString(), (success, transaction) -> {
+				// custom meta (optional)
+				if (meta != null && !meta.isEmpty()) {
+					metadata.append(";")
+						.append(meta);
+				}
+				
+				// remove invalid characters and shorten it to 255 chars
+				String cleanMetadata = metadata.toString().replaceAll("[^\\x20-\\x7F\\n]", "");
+				cleanMetadata = cleanMetadata.substring(0, Math.min(cleanMetadata.length(), 255));
+				
+				// if any cleaning was applied, warn the user
+				if (!cleanMetadata.equals(metadata.toString())) {
+					src.sendMessage(Text.builder()
+						.append(Text.of(TextColors.GOLD, "Warning: "))
+						.append(Text.of(TextColors.YELLOW, "Your metadata contained invalid characters, or was too " +
+							"long. It was automatically cleaned up.")).build());
+				}
+				
+				masterWallet.transfer(target, amount, cleanMetadata, (success, transaction) -> {
 					new TransactionLogEntry()
 						.setSuccess(success)
 						.setError(success ? null : "Transaction failed.")

@@ -29,7 +29,7 @@ public class CommandFaucet implements CommandExecutor {
 	private static final EconomyService ECONOMY_SERVICE = KristPay.INSTANCE.getEconomyService();
 	
 	@Override
-	public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
+	public synchronized CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
 		if (!(src instanceof Player)) throw new CommandException(Text.of("Must be ran by a player."));
 		Player player = (Player) src;
 		InetSocketAddress ip = player.getConnection().getAddress();

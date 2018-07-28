@@ -20,12 +20,10 @@ lombok {
     sha256 = ""
 }
 
-
 configurations {
     provided
     compile.extendsFrom provided
 }
-
 
 dependencies {
     compile 'org.spongepowered:spongeapi:7.0.0'

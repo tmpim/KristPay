@@ -50,9 +50,23 @@ public class Database {
 			"PRIMARY KEY (id)" +
 		");";
 		
+		String faucetRewardTable = "CREATE TABLE IF NOT EXISTS faucet_rewards (" +
+			"id INT NOT NULL AUTO_INCREMENT," +
+			"ip VARCHAR(255)," +
+			"user_id VARCHAR(255)," +
+			"value INT," +
+			"reward_tier INT," +
+			"time TIMESTAMP," +
+			"minimum TIMESTAMP," +
+			"expires TIMESTAMP," +
+			"PRIMARY KEY (id)" +
+		");";
+		
 		try (Connection conn = dataSource.getConnection();
-			 PreparedStatement stmt = conn.prepareStatement(txLogTable)) {
-			stmt.executeUpdate();
+			 PreparedStatement stmtTxLogTable = conn.prepareStatement(txLogTable);
+			 PreparedStatement stmtFaucetRewardTable = conn.prepareStatement(faucetRewardTable)) {
+			stmtTxLogTable.executeUpdate();
+			stmtFaucetRewardTable.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

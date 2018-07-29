@@ -31,7 +31,7 @@ public class WelfareManager {
 		Instant lastPayment = account.getWelfareLastPayment();
 		Instant now = Instant.now();
 		
-		return lastPayment.plus(Duration.ofMinutes(1)).isBefore(now);
+		return lastPayment.plus(Duration.ofDays(1)).isBefore(now);
 	}
 	
 	private static void reward(KristAccount account) {

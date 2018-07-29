@@ -45,7 +45,7 @@ public class CommandHelpers {
 										: getKristWebURL("addresses", address);
 		
 		return Text.builder()
-			.append(Text.of(TextColors.YELLOW, address))
+			.append(Text.of(TextColors.AQUA, address))
 			.onHover(TextActions.showText(Text.of(TextColors.AQUA, url.toString())))
 			.onClick(TextActions.openUrl(url))
 			.build();

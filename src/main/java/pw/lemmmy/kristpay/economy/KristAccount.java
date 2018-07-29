@@ -1,7 +1,6 @@
 package pw.lemmmy.kristpay.economy;
 
 import lombok.Getter;
-import lombok.Setter;
 import lombok.val;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.service.context.Context;
@@ -18,6 +17,7 @@ import pw.lemmmy.kristpay.Utils;
 import pw.lemmmy.kristpay.krist.Wallet;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -30,6 +30,8 @@ public class KristAccount implements UniqueAccount {
 	private int balance = 0;
 	private int unseenDeposit = 0;
 	private int unseenTransfer = 0;
+	private int welfareCounter = 0;
+	private Instant welfareLastPayment = Instant.now();
 	
 	private boolean needsSave = false;
 	
@@ -40,12 +42,20 @@ public class KristAccount implements UniqueAccount {
 		needsSave = true;
 	}
 	
-	public KristAccount(String owner, Wallet depositWallet, int balance, int unseenDeposit, int unseenTransfer) {
+	public KristAccount(String owner,
+						Wallet depositWallet,
+						int balance,
+						int unseenDeposit,
+						int unseenTransfer,
+						int welfareCounter,
+						Instant welfareLastPayment) {
 		this.owner = owner;
 		this.depositWallet = depositWallet;
 		this.balance = balance;
 		this.unseenDeposit = unseenDeposit;
 		this.unseenTransfer = unseenTransfer;
+		this.welfareCounter = welfareCounter;
+		this.welfareLastPayment = welfareLastPayment;
 	}
 	
 	public KristAccount setUnseenDeposit(int unseenDeposit) {
@@ -56,6 +66,13 @@ public class KristAccount implements UniqueAccount {
 	
 	public KristAccount setUnseenTransfer(int unseenTransfer) {
 		this.unseenTransfer = unseenTransfer;
+		needsSave = true;
+		return this;
+	}
+	
+	public KristAccount incrementWelfareCounter() {
+		welfareCounter++;
+		welfareLastPayment = Instant.now();
 		needsSave = true;
 		return this;
 	}

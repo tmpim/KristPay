@@ -11,7 +11,7 @@ import java.util.List;
 @Getter
 public class ConfigFaucet {
 	@Setting
-	private List<Integer> rewardTiers = Arrays.asList(5, 10, 15, 20);
+	private List<Integer> rewardTiers = Arrays.asList(2, 4, 6, 8, 10);
 	
 	@Setting(comment = "Minimum time until next reward is claimable (milliseconds)")
 	private long minimumTime = 1000 * 60 * 60 * 24; // 24 hours

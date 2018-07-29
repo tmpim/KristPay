@@ -141,6 +141,12 @@ public class CommandTransactions implements CommandExecutor {
 						.append(CommandHelpers.formatKrist(entry.getAmount(), successColour))
 						.append(Text.of(TextColors.YELLOW, " via faucet"));
 					break;
+				case WELFARE:
+					builder
+						.append(Text.of(TextColors.YELLOW, "Redeemed "))
+						.append(CommandHelpers.formatKrist(entry.getAmount(), successColour))
+						.append(Text.of(TextColors.YELLOW, " via basic income"));
+					break;
 				case DEPOSIT:
 				case WITHDRAW:
 				case TRANSFER:

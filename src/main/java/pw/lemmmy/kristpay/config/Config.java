@@ -12,4 +12,5 @@ public class Config {
 	@Setting private ConfigEconomy economy = new ConfigEconomy();
 	@Setting private ConfigDatabase database = new ConfigDatabase();
 	@Setting private ConfigFaucet faucet = new ConfigFaucet();
+	@Setting private ConfigWelfare welfare = new ConfigWelfare();
 }

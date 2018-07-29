@@ -1,9 +1,14 @@
 package pw.lemmmy.kristpay.economy;
 
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.service.economy.EconomyService;
+import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
+import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.action.TextActions;
+import org.spongepowered.api.text.format.TextColors;
 import pw.lemmmy.kristpay.KristPay;
+import pw.lemmmy.kristpay.commands.CommandHelpers;
 import pw.lemmmy.kristpay.config.ConfigFaucet;
 import pw.lemmmy.kristpay.database.FaucetReward;
 import pw.lemmmy.kristpay.database.TransactionLogEntry;
@@ -13,10 +18,10 @@ import java.math.BigDecimal;
 import java.net.InetSocketAddress;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 public class FaucetManager {
-	private static final EconomyService ECONOMY_SERVICE = KristPay.INSTANCE.getEconomyService();
-	
 	public static List<Integer> getRewardTiers() {
 		return KristPay.INSTANCE.getConfig().getFaucet().getRewardTiers();
 	}
@@ -66,5 +71,33 @@ public class FaucetManager {
 			.addAsync();
 		
 		return reward;
+	}
+	
+	public static void handleLogin(Player player, KristAccount account) {
+		Task.builder()
+			.execute(() -> {
+				Optional<FaucetReward> lastRewardOpt = FaucetReward.getLastReward(
+					KristPay.INSTANCE.getDatabase().getDataSource(),
+					player.getConnection().getAddress(), account
+				);
+				
+				// start them on the first tier if they haven't claimed a reward before
+				int nextTier = lastRewardOpt.map(FaucetManager::getNextRewardTier).orElse(0);
+				if (nextTier <= -1) return; // don't notify if they've already redeemed
+				
+				player.sendMessage(Text.builder()
+					.append(Text.of(TextColors.GREEN, "You have not yet redeemed your faucet reward of "))
+					.append(CommandHelpers.formatKrist(FaucetManager.getRewardValue(nextTier)))
+					.append(Text.of(TextColors.GREEN, ". Run "))
+					.append(Text.of(TextColors.AQUA, "/faucet"))
+					.append(Text.of(TextColors.GREEN, " to redeem it!"))
+					.onHover(TextActions.showText(Text.of(TextColors.AQUA, "/faucet")))
+					.onClick(TextActions.runCommand("/faucet"))
+					.build());
+			})
+			.async()
+			.delay(1250, TimeUnit.MILLISECONDS)
+			.name("KristPay - Faucet notifications")
+			.submit(KristPay.INSTANCE);
 	}
 }

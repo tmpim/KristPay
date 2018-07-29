@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
@@ -67,9 +68,11 @@ public class AccountDatabase {
 			int balance = accountJSON.getInt("balance");
 			int unseenDeposit = accountJSON.optInt("unseenDeposit", 0);
 			int unseenTransfer = accountJSON.optInt("unseenTransfer", 0);
+			int welfareCounter = accountJSON.optInt("welfareCounter", 0);
+			Instant welfareLastPayment = Instant.parse(accountJSON.optString("welfareLastPayment", Instant.now().toString()));
 			
 			Wallet wallet = new Wallet(privatekey);
-			KristAccount account = new KristAccount(owner, wallet, balance, unseenDeposit, unseenTransfer);
+			KristAccount account = new KristAccount(owner, wallet, balance, unseenDeposit, unseenTransfer, welfareCounter, welfareLastPayment);
 			
 			accounts.put(owner, account);
 		}
@@ -90,6 +93,8 @@ public class AccountDatabase {
 			.put("depositPassword", kristAccount.getDepositWallet().getPassword())
 			.put("unseenDeposit", kristAccount.getUnseenDeposit())
 			.put("unseenTransfer", kristAccount.getUnseenTransfer())
+			.put("welfareCounter", kristAccount.getWelfareCounter())
+			.put("welfareLastPayment", kristAccount.getWelfareLastPayment().toString())
 		));
 		
 		data.put("accounts", accountsJSON);

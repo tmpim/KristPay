@@ -114,6 +114,9 @@ public class CommandPay implements CommandExecutor {
 		
 		switch (result.getResult()) {
 			case SUCCESS:
+				if (KristPay.INSTANCE.getPrometheusManager() != null)
+					KristPay.INSTANCE.getPrometheusManager().getTransactionsReporter().incrementTransfers(amount);
+				
 				src.sendMessage(
 					Text.builder()
 						.append(Text.of(TextColors.DARK_GREEN, "Success! "))
@@ -229,6 +232,9 @@ public class CommandPay implements CommandExecutor {
 							Sponge.getCauseStackManager().getCurrentCause()
 						);
 					} else {
+						if (KristPay.INSTANCE.getPrometheusManager() != null)
+							KristPay.INSTANCE.getPrometheusManager().getTransactionsReporter().incrementWithdrawals(amount);
+						
 						Text.Builder builder = Text.builder()
 							.append(Text.of(TextColors.DARK_GREEN, "Success! "))
 							.append(Text.of(TextColors.GREEN, "Transferred "))

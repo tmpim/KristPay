@@ -32,11 +32,22 @@ dependencies {
     compile 'org.java-websocket:Java-WebSocket:1.3.7'
     compile 'com.mashape.unirest:unirest-java:1.4.9'
     compile group: 'org.json', name: 'json', version: '20180130'
+
+	compile 'io.prometheus:simpleclient_common:0.0.26'
+	compile 'org.eclipse.jetty:jetty-server:9.4.6.v20170531'
+	compile 'javax.servlet:javax.servlet-api:4.0.0'
 }
 
 shadowJar {
-    relocate 'org.apache.http', 'shadow.kristpay.http'
-    relocate 'org.apache.commons.logging', 'shadow.kristpay.logging'
+    relocate 'org.apache.http', 'shadow.pw.lemmmy.kristpay.http'
+    relocate 'org.apache.commons.logging', 'shadow.pw.lemmmy.kristpay.logging'
+
+	relocate 'org.eclipse.jetty', 'shadow.pw.lemmmy.kristpay.jetty'
+	relocate 'io.prometheus', 'shadow.pw.lemmmy.kristpay.prometheus.client'
+	relocate 'javax.servlet', 'shadow.pw.lemmmy.kristpay.servlet'
+
+	exclude 'jetty-dir.css'
+	exclude 'about.html'
 }
 
 artifacts {

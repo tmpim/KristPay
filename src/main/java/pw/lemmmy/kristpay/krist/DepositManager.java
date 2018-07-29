@@ -68,6 +68,9 @@ public class DepositManager {
 				Cause.of(EventContext.empty(), this)
 			);
 			
+			if (KristPay.INSTANCE.getPrometheusManager() != null)
+				KristPay.INSTANCE.getPrometheusManager().getTransactionsReporter().incrementDeposits(depositAmount);
+			
 			new TransactionLogEntry()
 				.setSuccess(true)
 				.setType(TransactionType.DEPOSIT)

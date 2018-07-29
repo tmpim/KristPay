@@ -36,6 +36,7 @@ import pw.lemmmy.kristpay.economy.KristEconomy;
 import pw.lemmmy.kristpay.krist.DepositManager;
 import pw.lemmmy.kristpay.krist.KristClientManager;
 import pw.lemmmy.kristpay.krist.MasterWallet;
+import pw.lemmmy.kristpay.prometheus.PrometheusManager;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -65,6 +66,8 @@ public class KristPay {
 	
 	private KristEconomy economyService = new KristEconomy();
 	
+	private PrometheusManager prometheusManager;
+	
 	@Listener
 	public void preInit(GamePreInitializationEvent event) throws IOException {
 		INSTANCE = this;
@@ -87,19 +90,38 @@ public class KristPay {
 		
 		kristClientManager = new KristClientManager();
 		new Thread(kristClientManager).start();
+		
+		if (config.getPrometheus().isEnabled()) {
+			prometheusManager = new PrometheusManager();
+			prometheusManager.startServer();
+		}
 	}
 	
 	@Listener
 	public void reload(GameReloadEvent event, @First MessageReceiver receiver) {
 		receiver.sendMessage(Text.of("Reloading KristPay."));
+		
 		kristClientManager.stopClient();
+		
+		if (prometheusManager != null) {
+			prometheusManager.stopServer();
+			prometheusManager = null;
+		}
+		
 		try {
 			accountDatabase.load();
 			database.load();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
 		kristClientManager.startClient();
+		
+		if (config.getPrometheus().isEnabled()) {
+			prometheusManager = new PrometheusManager();
+			prometheusManager.startServer();
+		}
+		
 		receiver.sendMessage(Text.of("Reloaded KristPay."));
 	}
 	
@@ -118,6 +140,11 @@ public class KristPay {
 	public void serverStopped(GameStoppedServerEvent event) {
 		if (accountDatabase != null) accountDatabase.save();
 		if (isUp()) kristClientManager.stopClient();
+		
+		if (prometheusManager != null) {
+			prometheusManager.stopServer();
+			prometheusManager = null;
+		}
 	}
 	
 	@Listener

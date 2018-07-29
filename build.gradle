@@ -7,7 +7,7 @@ plugins {
 }
 
 group 'pw.lemmmy'
-version '2.2.0'
+version '2.3.0'
 
 sourceCompatibility = 1.8
 
@@ -20,12 +20,10 @@ lombok {
     sha256 = ""
 }
 
-
 configurations {
     provided
     compile.extendsFrom provided
 }
-
 
 dependencies {
     compile 'org.spongepowered:spongeapi:7.0.0'

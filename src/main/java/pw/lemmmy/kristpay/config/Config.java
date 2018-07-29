@@ -13,4 +13,5 @@ public class Config {
 	@Setting private ConfigDatabase database = new ConfigDatabase();
 	@Setting private ConfigFaucet faucet = new ConfigFaucet();
 	@Setting private ConfigWelfare welfare = new ConfigWelfare();
+	@Setting private ConfigPrometheus prometheus = new ConfigPrometheus();
 }

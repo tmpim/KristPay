@@ -51,9 +51,9 @@ public class WelfareManager {
 	
 	private static void notifyReward(Player player) {
 		player.sendMessage(Text.builder()
-			.append(Text.of(TextColors.GREEN, "You were awarded "))
+			.append(Text.of(TextColors.GREEN, "You received today's "))
 			.append(CommandHelpers.formatKrist(getWelfareAmount()))
-			.append(Text.of(TextColors.GREEN, " via basic income."))
+			.append(Text.of(TextColors.GREEN, " daily login bonus."))
 			.build());
 	}
 	

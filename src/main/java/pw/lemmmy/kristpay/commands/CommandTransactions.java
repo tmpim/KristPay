@@ -138,7 +138,8 @@ public class CommandTransactions implements CommandExecutor {
 				case FAUCET:
 					builder
 						.append(Text.of(TextColors.YELLOW, "Redeemed "))
-						.append(CommandHelpers.formatKrist(entry.getAmount(), successColour));
+						.append(CommandHelpers.formatKrist(entry.getAmount(), successColour))
+						.append(Text.of(TextColors.YELLOW, " via faucet"));
 					break;
 				case DEPOSIT:
 				case WITHDRAW:

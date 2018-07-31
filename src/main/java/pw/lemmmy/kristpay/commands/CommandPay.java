@@ -329,6 +329,7 @@ public class CommandPay implements CommandExecutor {
 		}
 	}
 	
+	@FunctionalInterface
 	private interface CommandCallable {
 		CommandResult call() throws CommandException;
 	}

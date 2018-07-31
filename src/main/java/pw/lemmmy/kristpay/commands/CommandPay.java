@@ -2,6 +2,7 @@ package pw.lemmmy.kristpay.commands;
 
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandException;
+import org.spongepowered.api.command.CommandMessageFormatting;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
@@ -16,6 +17,7 @@ import org.spongepowered.api.service.economy.transaction.ResultType;
 import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.service.economy.transaction.TransferResult;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.text.serializer.TextSerializers;
 import pw.lemmmy.kristpay.KristPay;
@@ -26,6 +28,7 @@ import pw.lemmmy.kristpay.krist.MasterWallet;
 
 import java.math.BigDecimal;
 import java.util.Optional;
+import java.util.concurrent.Callable;
 
 import static org.spongepowered.api.command.args.GenericArguments.*;
 
@@ -53,6 +56,9 @@ public class CommandPay implements CommandExecutor {
 	
 	private static final EconomyService ECONOMY_SERVICE = KristPay.INSTANCE.getEconomyService();
 	
+	private static final double WARN_LIMIT_PERCENTAGE = 0.5;
+	private static final int WARN_LIMIT_HARD = 1000;
+	
 	@Override
 	public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
 		if (!(src instanceof User)) throw new CommandException(Text.of("Must be ran by a user."));
@@ -63,6 +69,10 @@ public class CommandPay implements CommandExecutor {
 		int amount = args.<Integer>getOne("amount")
 			.orElseThrow(() ->  new CommandException(Text.of("Must specify a valid amount to pay.")));
 		if (amount <= 0) throw new CommandException(Text.of("Amount must be positive."));
+		
+		int balance = ownerAccount.getBalance(KristPay.INSTANCE.getCurrency()).intValue();
+		if (balance - amount < 0)
+			throw new CommandException(Text.of("You don't have enough funds for this transaction."));
 		
 		String meta = args.<String>getOne("meta").orElse("");
 		
@@ -84,7 +94,8 @@ public class CommandPay implements CommandExecutor {
 				);
 			}
 			
-			return payUser(src, owner, ownerAccount, target, targetAccount, amount, meta);
+			return checkAmount(src, balance, amount,
+				() -> payUser(src, owner, ownerAccount, target, targetAccount, amount, meta));
 		} else {
 			String target = args.<String>getOne("address")
 				.orElseThrow(() -> new CommandException(Text.of("Must specify a valid user or address to pay to.")))
@@ -93,7 +104,47 @@ public class CommandPay implements CommandExecutor {
 			if (!target.matches(KRIST_TRANSFER_PATTERN))
 				throw new CommandException(Text.of("Must specify a valid user or address to pay to."));
 			
-			return payAddress(src, owner, ownerAccount, target, amount, meta);
+			return checkAmount(src, balance, amount,
+				() -> payAddress(src, owner, ownerAccount, target, amount, meta));
+		}
+	}
+	
+	private CommandResult checkAmount(CommandSource src, int balance, int amount, CommandCallable onAccept) throws CommandException {
+		Text message = null;
+		
+		if (amount == balance) message = Text.of(TextColors.YELLOW, "(your entire balance!)");
+		else if (amount >= balance * WARN_LIMIT_PERCENTAGE) message = Text.of(TextColors.YELLOW, "(more than half your balance!)");
+		else if (amount >= WARN_LIMIT_HARD) {
+			message = Text.builder()
+				.append(Text.of(TextColors.YELLOW, "(more than "))
+				.append(CommandHelpers.formatKrist(WARN_LIMIT_HARD))
+				.append(Text.of(TextColors.YELLOW, "!)"))
+				.build();
+		}
+		
+		if (message != null) {
+			src.sendMessage(Text.builder()
+				.append(Text.of(TextColors.GOLD, "Warning: "))
+				.append(Text.of(TextColors.YELLOW, "You're about to make a very large transaction "))
+				.append(message)
+				.append(Text.of(TextColors.YELLOW, ". "))
+				.append(Text.builder()
+					.append(Text.of(TextColors.AQUA, "Click here"))
+					.onClick(TextActions.executeCallback(src2 -> {
+						try {
+							onAccept.call();
+						} catch (CommandException e) {
+							Text eText = e.getText();
+							if (eText != null) src2.sendMessage(CommandMessageFormatting.error(eText));
+						}
+					}))
+					.build())
+				.append(Text.of(TextColors.YELLOW, " to confirm this transaction."))
+				.build());
+			
+			return CommandResult.empty();
+		} else {
+			return onAccept.call();
 		}
 	}
 	
@@ -273,5 +324,9 @@ public class CommandPay implements CommandExecutor {
 						.build()
 				);
 		}
+	}
+	
+	private interface CommandCallable {
+		CommandResult call() throws CommandException;
 	}
 }

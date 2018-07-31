@@ -12,8 +12,7 @@ import pw.lemmmy.kristpay.database.TransactionLogEntry;
 import pw.lemmmy.kristpay.database.TransactionType;
 
 import java.math.BigDecimal;
-import java.time.Duration;
-import java.time.Instant;
+import java.time.*;
 import java.util.concurrent.TimeUnit;
 
 public class WelfareManager {
@@ -28,10 +27,13 @@ public class WelfareManager {
 	}
 	
 	private static boolean canIncreaseCounter(KristAccount account) {
-		Instant lastPayment = account.getWelfareLastPayment();
-		Instant now = Instant.now();
+		ZoneId timezone = ZoneId.systemDefault();
 		
-		return lastPayment.plus(Duration.ofHours(18)).isBefore(now);
+		// convert them to dates, so we only act on the days
+		LocalDate lastPayment = LocalDateTime.ofInstant(account.getWelfareLastPayment(), timezone).toLocalDate();
+		LocalDate now = LocalDateTime.ofInstant(Instant.now(), timezone).toLocalDate();
+		
+		return now.isAfter(lastPayment);
 	}
 	
 	private static void reward(KristAccount account) {

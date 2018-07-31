@@ -31,7 +31,7 @@ public class KristAccount implements UniqueAccount {
 	private int unseenDeposit = 0;
 	private int unseenTransfer = 0;
 	private int welfareCounter = 0;
-	private Instant welfareLastPayment = Instant.now();
+	private Instant welfareLastPayment = Instant.EPOCH;
 	
 	private boolean needsSave = false;
 	

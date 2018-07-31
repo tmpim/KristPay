@@ -28,7 +28,6 @@ import pw.lemmmy.kristpay.krist.MasterWallet;
 
 import java.math.BigDecimal;
 import java.util.Optional;
-import java.util.concurrent.Callable;
 
 import static org.spongepowered.api.command.args.GenericArguments.*;
 
@@ -130,6 +129,10 @@ public class CommandPay implements CommandExecutor {
 				.append(Text.of(TextColors.YELLOW, ". "))
 				.append(Text.builder()
 					.append(Text.of(TextColors.AQUA, "Click here"))
+					.onHover(TextActions.showText(Text.builder()
+						.append(Text.of(TextColors.RED, "Confirm transaction "))
+						.append(Text.of(TextColors.DARK_RED, "(dangerous!)"))
+						.build()))
 					.onClick(TextActions.executeCallback(src2 -> {
 						try {
 							onAccept.call();

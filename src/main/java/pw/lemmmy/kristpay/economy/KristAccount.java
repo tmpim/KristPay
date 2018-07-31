@@ -1,7 +1,6 @@
 package pw.lemmmy.kristpay.economy;
 
 import lombok.Getter;
-import lombok.Setter;
 import lombok.val;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.service.context.Context;

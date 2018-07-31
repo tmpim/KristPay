@@ -17,6 +17,7 @@ import org.spongepowered.api.service.economy.transaction.TransactionResult;
 import org.spongepowered.api.service.economy.transaction.TransferResult;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
+import org.spongepowered.api.text.serializer.TextSerializers;
 import pw.lemmmy.kristpay.KristPay;
 import pw.lemmmy.kristpay.database.TransactionLogEntry;
 import pw.lemmmy.kristpay.database.TransactionType;
@@ -63,6 +64,8 @@ public class CommandPay implements CommandExecutor {
 			.orElseThrow(() ->  new CommandException(Text.of("Must specify a valid amount to pay.")));
 		if (amount <= 0) throw new CommandException(Text.of("Amount must be positive."));
 		
+		String meta = args.<String>getOne("meta").orElse("");
+		
 		if (args.hasAny("user") && !args.hasAny("k")) {
 			User target = args.<User>getOne("user")
 				.orElseThrow(() -> new CommandException(Text.of("Must specify a valid user or address to pay to.")));
@@ -81,7 +84,7 @@ public class CommandPay implements CommandExecutor {
 				);
 			}
 			
-			return payUser(src, owner, ownerAccount, target, targetAccount, amount);
+			return payUser(src, owner, ownerAccount, target, targetAccount, amount, meta);
 		} else {
 			String target = args.<String>getOne("address")
 				.orElseThrow(() -> new CommandException(Text.of("Must specify a valid user or address to pay to.")))
@@ -90,14 +93,12 @@ public class CommandPay implements CommandExecutor {
 			if (!target.matches(KRIST_TRANSFER_PATTERN))
 				throw new CommandException(Text.of("Must specify a valid user or address to pay to."));
 			
-			String meta = args.<String>getOne("meta").orElse("");
-			
 			return payAddress(src, owner, ownerAccount, target, amount, meta);
 		}
 	}
 	
 	private CommandResult payUser(CommandSource src, User owner, UniqueAccount ownerAccount, User target,
-								  UniqueAccount targetAccount, int amount) throws CommandException {
+								  UniqueAccount targetAccount, int amount, String meta) throws CommandException {
 		TransferResult result = ownerAccount.transfer(
 			targetAccount,
 			KristPay.INSTANCE.getCurrency(),
@@ -106,6 +107,7 @@ public class CommandPay implements CommandExecutor {
 		);
 		
 		new TransactionLogEntry()
+			.setMetaMessage(meta)
 			.setTransferResult(result)
 			.setFromAccount(ownerAccount)
 			.setToAccount(targetAccount)
@@ -131,15 +133,22 @@ public class CommandPay implements CommandExecutor {
 				Optional<Player> targetPlayerOpt = target.getPlayer();
 				
 				if (targetPlayerOpt.isPresent()) {
-					targetPlayerOpt.get().sendMessage(
-						Text.builder()
-							.append(Text.of(TextColors.GREEN, "You have received "))
-							.append(CommandHelpers.formatKrist(result.getAmount()))
-							.append(Text.of(TextColors.GREEN, " from player "))
-							.append(Text.of(TextColors.YELLOW, owner.getName()))
-							.append(Text.of(TextColors.GREEN, "."))
-							.build()
-					);
+					Text.Builder builder = Text.builder()
+						.append(Text.of(TextColors.GREEN, "You have received "))
+						.append(CommandHelpers.formatKrist(result.getAmount()))
+						.append(Text.of(TextColors.GREEN, " from player "))
+						.append(Text.of(TextColors.YELLOW, owner.getName()))
+						.append(Text.of(TextColors.GREEN, "."));
+					
+					if (meta != null && !meta.isEmpty()) {
+						Text message = TextSerializers.FORMATTING_CODE.deserialize(meta);
+						
+						builder.append(Text.of("\n"))
+							.append(Text.of(TextColors.DARK_GREEN, "Message: "))
+							.append(message);
+					}
+					
+					targetPlayerOpt.get().sendMessage(builder.build());
 				} else if (targetAccount instanceof KristAccount) {
 					KristAccount targetKristAccount = (KristAccount) targetAccount;
 					targetKristAccount.setUnseenTransfer(targetKristAccount.getUnseenTransfer() + amount);

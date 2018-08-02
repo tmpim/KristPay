@@ -56,9 +56,9 @@ public class Database {
 			"account VARCHAR(255)," +
 			"value INT," +
 			"reward_tier INT," +
-			"time TIMESTAMP," +
-			"minimum TIMESTAMP," +
-			"expires TIMESTAMP," +
+			"time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP," +
+			"minimum TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP," +
+			"expires TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP," +
 			"PRIMARY KEY (id)" +
 		");";
 		

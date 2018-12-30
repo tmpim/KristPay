@@ -2,7 +2,7 @@
     {
         "modid": "kristpay",
         "name": "KristPay",
-        "version": "2.0",
+        "version": "2.5.1",
         "description": "Krist Economy Service for Sponge.",
         "dependencies": [
             "spongeapi@7.0.0"

@@ -18,8 +18,8 @@ import java.util.concurrent.TimeUnit;
 public class WelfareManager {
 	private static final EconomyService ECONOMY_SERVICE = KristPay.INSTANCE.getEconomyService();
 	
-	public static int getWelfareAmount() {
-		return KristPay.INSTANCE.getConfig().getWelfare().getWelfareAmount();
+	public static int getWelfareAmount(KristAccount account) {
+		return account.getWelfareAmount() != -1 ? account.getWelfareAmount() : KristPay.INSTANCE.getConfig().getWelfare().getWelfareAmount();
 	}
 	
 	public static int getWelfareMinimumDays() {
@@ -39,7 +39,7 @@ public class WelfareManager {
 	private static void reward(KristAccount account) {
 		account.deposit(
 			KristPay.INSTANCE.getCurrency(),
-			BigDecimal.valueOf(getWelfareAmount()),
+			BigDecimal.valueOf(getWelfareAmount(account)),
 			Sponge.getCauseStackManager().getCurrentCause()
 		);
 		
@@ -47,14 +47,14 @@ public class WelfareManager {
 			.setSuccess(true)
 			.setType(TransactionType.WELFARE)
 			.setToAccount(account)
-			.setAmount(getWelfareAmount())
+			.setAmount(getWelfareAmount(account))
 			.addAsync();
 	}
 	
-	private static void notifyReward(Player player) {
+	private static void notifyReward(KristAccount account, Player player) {
 		player.sendMessage(Text.builder()
 			.append(Text.of(TextColors.GREEN, "You received today's "))
-			.append(CommandHelpers.formatKrist(getWelfareAmount()))
+			.append(CommandHelpers.formatKrist(getWelfareAmount(account)))
 			.append(Text.of(TextColors.GREEN, " daily login bonus."))
 			.build());
 	}
@@ -67,7 +67,7 @@ public class WelfareManager {
 				Task.builder() // run this on the main thread
 					.execute(() -> {
 						reward(account);
-						notifyReward(player);
+						notifyReward(account, player);
 					})
 					.name("KristPay - Welfare reward")
 					.submit(KristPay.INSTANCE);

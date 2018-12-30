@@ -70,9 +70,10 @@ public class AccountDatabase {
 			int unseenTransfer = accountJSON.optInt("unseenTransfer", 0);
 			int welfareCounter = accountJSON.optInt("welfareCounter", 0);
 			Instant welfareLastPayment = Instant.parse(accountJSON.optString("welfareLastPayment", Instant.now().toString()));
+			int welfareAmount = accountJSON.optInt("welfareAmount", -1);
 			
 			Wallet wallet = new Wallet(privatekey);
-			KristAccount account = new KristAccount(owner, wallet, balance, unseenDeposit, unseenTransfer, welfareCounter, welfareLastPayment);
+			KristAccount account = new KristAccount(owner, wallet, balance, unseenDeposit, unseenTransfer, welfareCounter, welfareLastPayment, welfareAmount);
 			
 			accounts.put(owner, account);
 		}
@@ -95,6 +96,7 @@ public class AccountDatabase {
 			.put("unseenTransfer", kristAccount.getUnseenTransfer())
 			.put("welfareCounter", kristAccount.getWelfareCounter())
 			.put("welfareLastPayment", kristAccount.getWelfareLastPayment().toString())
+			.put("welfareAmount", kristAccount.getWelfareAmount())
 		));
 		
 		data.put("accounts", accountsJSON);

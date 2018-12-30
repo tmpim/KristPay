@@ -132,6 +132,7 @@ public class KristPay {
 		Sponge.getCommandManager().register(this, CommandPay.SPEC, "pay", "withdraw", "transfer");
 		Sponge.getCommandManager().register(this, CommandDeposit.SPEC, "deposit");
 		Sponge.getCommandManager().register(this, CommandSetBalance.SPEC, "setbalance", "setbal");
+		Sponge.getCommandManager().register(this, CommandSetWelfare.SPEC, "setwelfare");
 		Sponge.getCommandManager().register(this, CommandTransaction.SPEC, "transaction", "tx");
 		Sponge.getCommandManager().register(this, CommandTransactions.SPEC, "transactions", "txs", "alltx");
 		Sponge.getCommandManager().register(this, CommandFaucet.SPEC, "faucet", "redeem");

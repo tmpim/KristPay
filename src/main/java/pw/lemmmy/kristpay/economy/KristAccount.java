@@ -32,6 +32,7 @@ public class KristAccount implements UniqueAccount {
 	private int unseenTransfer = 0;
 	private int welfareCounter = 0;
 	private Instant welfareLastPayment = Instant.EPOCH;
+	private int welfareAmount = -1;
 	
 	private boolean needsSave = false;
 	
@@ -48,7 +49,8 @@ public class KristAccount implements UniqueAccount {
 						int unseenDeposit,
 						int unseenTransfer,
 						int welfareCounter,
-						Instant welfareLastPayment) {
+						Instant welfareLastPayment,
+						int welfareAmount) {
 		this.owner = owner;
 		this.depositWallet = depositWallet;
 		this.balance = balance;
@@ -56,6 +58,7 @@ public class KristAccount implements UniqueAccount {
 		this.unseenTransfer = unseenTransfer;
 		this.welfareCounter = welfareCounter;
 		this.welfareLastPayment = welfareLastPayment;
+		this.welfareAmount = welfareAmount;
 	}
 	
 	public KristAccount setUnseenDeposit(int unseenDeposit) {
@@ -73,6 +76,12 @@ public class KristAccount implements UniqueAccount {
 	public KristAccount incrementWelfareCounter() {
 		welfareCounter++;
 		welfareLastPayment = Instant.now();
+		needsSave = true;
+		return this;
+	}
+	
+	public KristAccount setWelfareAmount(int welfareAmount) {
+		this.welfareAmount = welfareAmount;
 		needsSave = true;
 		return this;
 	}

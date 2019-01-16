@@ -32,7 +32,7 @@ public class KristAPI {
 		return Optional.of(body.getString("url"));
 	}
 	
-	public static Optional<KristTransaction> makeTransaction(String privatekey, String to, int amount, String metadata) throws UnirestException {
+	public static KristTransaction makeTransaction(String privatekey, String to, int amount, String metadata) throws UnirestException, NameNotFoundException {
 		HttpResponse<JsonNode> response = Unirest.post(getKristNode() + "/transactions")
 			.field("privatekey", privatekey)
 			.field("to", to)
@@ -42,8 +42,12 @@ public class KristAPI {
 		
 		JSONObject body = response.getBody().getObject();
 		
-		if (!body.getBoolean("ok")) return Optional.empty();
-		return Optional.of(KristTransaction.fromJSON(body.getJSONObject("transaction")));
+		if (!body.getBoolean("ok")) {
+			if (body.getString("error").equals("name_not_found")) throw new NameNotFoundException();
+			else throw new KristException(body.getString("error"));
+		}
+		
+		return KristTransaction.fromJSON(body.getJSONObject("transaction"));
 	}
 	
 	// https://github.com/Lignum/JKrist
@@ -51,7 +55,7 @@ public class KristAPI {
 		int b = 48 + inp / 7;
 		if (b > 57) b += 39;
 		if (b > 122) b = 101;
-		return (char)b;
+		return (char) b;
 	}
 	
 	// https://github.com/Lignum/JKrist

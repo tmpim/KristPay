@@ -49,7 +49,7 @@ public class DepositManager {
 		
 		refundReason += " (send to `username@" + primaryDepositName + "` to deposit, or set `donate=true` to donate)";
 		
-		masterWallet.transfer(refundAddress, depositAmount, "error=" + refundReason, (success, transaction) -> {});
+		masterWallet.transfer(refundAddress, depositAmount, "error=" + refundReason);
 	}
 	
 	private void handleDeposit(KristAccount account,
@@ -61,7 +61,7 @@ public class DepositManager {
 		
 		String fromAddress = fromTx != null ? fromTx.getFrom() : null;
 		
-		depositWallet.transfer(masterWallet.getAddress(), depositAmount, null, (success, depositTx) -> {
+		depositWallet.transfer(masterWallet.getAddress(), depositAmount, null).handle((tx, ex) -> {
 			account.deposit(
 				KristPay.INSTANCE.getCurrency(),
 				BigDecimal.valueOf(depositAmount),
@@ -85,7 +85,7 @@ public class DepositManager {
 			// notify player of their deposit if they are online
 			if (playerOptional.isPresent()) {
 				Player player = playerOptional.get();
-				if (!player.isOnline()) return;
+				if (!player.isOnline()) return tx;
 				
 				Text.Builder builder = Text.builder()
 					.append(CommandHelpers.formatKrist(depositAmount))
@@ -127,6 +127,8 @@ public class DepositManager {
 				account.setUnseenDeposit(account.getUnseenDeposit() + depositAmount);
 				KristPay.INSTANCE.getAccountDatabase().save();
 			}
+			
+			return tx;
 		});
 	}
 	

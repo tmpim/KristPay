@@ -4,8 +4,7 @@ import com.mashape.unirest.http.exceptions.UnirestException;
 import lombok.Getter;
 import pw.lemmmy.kristpay.KristPay;
 
-import java.util.Optional;
-import java.util.function.BiConsumer;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 @Getter
@@ -32,31 +31,20 @@ public class Wallet {
 		});
 	}
 	
-	public void transfer(String to, int amount, String metadata, BiConsumer<Boolean, KristTransaction> callback) {
-		if (!KristPay.INSTANCE.isUp()) {
-			callback.accept(false, null);
-			return;
-		}
-		
-		if (address.equalsIgnoreCase(to)) {
-			callback.accept(true, null);
-			return;
-		}
-		
-		try {
-			Optional<KristTransaction> opt = KristAPI.makeTransaction(privatekey, to, amount, metadata);
+	public CompletableFuture<KristTransaction> transfer(String to, int amount, String metadata) {
+		return CompletableFuture.supplyAsync(() -> {
+			if (!KristPay.INSTANCE.isUp()) throw new KristDownException();
+			if (address.equalsIgnoreCase(to)) throw new SelfSendException();
 			
-			if (opt.isPresent()) {
-				syncWithNode(success -> {
-					if (!success) balance -= amount;
-					callback.accept(true, opt.get());
-				});
-			} else {
-				callback.accept(false, null);
+			try {
+				return KristAPI.makeTransaction(privatekey, to, amount, metadata);
+			} catch (UnirestException e) {
+				KristPay.INSTANCE.getLogger().error("Error transferring KST from " + address + " to " + to, e);
+				throw new KristDownException();
 			}
-		} catch (UnirestException e) {
-			KristPay.INSTANCE.getLogger().error("Error transferring KST from " + address + " to " + to, e);
-			callback.accept(false, null);
-		}
+		}).thenApplyAsync(kristTransaction -> {
+			syncWithNode(cb -> {});
+			return kristTransaction;
+		});
 	}
 }

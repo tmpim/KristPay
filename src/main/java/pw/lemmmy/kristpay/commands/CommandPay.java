@@ -24,10 +24,14 @@ import pw.lemmmy.kristpay.KristPay;
 import pw.lemmmy.kristpay.database.TransactionLogEntry;
 import pw.lemmmy.kristpay.database.TransactionType;
 import pw.lemmmy.kristpay.economy.KristAccount;
+import pw.lemmmy.kristpay.krist.KristTransaction;
 import pw.lemmmy.kristpay.krist.MasterWallet;
+import pw.lemmmy.kristpay.krist.NameNotFoundException;
 
 import java.math.BigDecimal;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 import static org.spongepowered.api.command.args.GenericArguments.*;
 
@@ -274,19 +278,24 @@ public class CommandPay implements CommandExecutor {
 							"long. It was automatically cleaned up.")).build());
 				}
 				
-				masterWallet.transfer(target, amount, cleanMetadata, (success, transaction) -> {
+				masterWallet.transfer(target, amount, cleanMetadata).handle((tx, ex) -> {
 					new TransactionLogEntry()
-						.setSuccess(success)
-						.setError(success ? null : "Transaction failed.")
+						.setSuccess(ex != null)
+						.setError(ex != null ? "Transaction failed." : null)
 						.setType(TransactionType.WITHDRAW)
 						.setFromAccount(ownerAccount)
 						.setDestAddress(target)
-						.setTransaction(transaction)
+						.setTransaction(tx)
 						.setAmount(amount)
 						.addAsync();
 					
-					if (!success) {
-						src.sendMessage(Text.of(TextColors.RED, "Transaction failed. Try again later, or contact an admin."));
+					if (ex != null) {
+						if (ex instanceof NameNotFoundException || ex.getCause() instanceof NameNotFoundException) {
+							src.sendMessage(Text.of(TextColors.RED, "Name not found! Did you type the address correctly?"));
+						} else {
+							KristPay.INSTANCE.getLogger().error("Error in transaction", ex);
+							src.sendMessage(Text.of(TextColors.RED, "Transaction failed. Try again later, or contact an admin."));
+						}
 						
 						// refund their transaction
 						ownerAccount.deposit(
@@ -305,14 +314,16 @@ public class CommandPay implements CommandExecutor {
 							.append(Text.of(TextColors.GREEN, " to address "))
 							.append(CommandHelpers.formatAddress(target));
 						
-						if (!target.equalsIgnoreCase(transaction.getTo())) {
+						if (!target.equalsIgnoreCase(tx.getTo())) {
 							builder.append(Text.of(TextColors.GREEN, " ("))
-								.append(CommandHelpers.formatAddress(transaction.getTo()))
+								.append(CommandHelpers.formatAddress(tx.getTo()))
 								.append(Text.of(TextColors.GREEN, ")"));
 						}
 						
 						src.sendMessage(builder.append(Text.of(TextColors.GREEN, ".")).build());
 					}
+					
+					return tx;
 				});
 				
 				return CommandResult.success();

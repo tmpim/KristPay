@@ -1,5 +1,6 @@
 package pw.lemmmy.kristpay.commands;
 
+import lombok.val;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandMessageFormatting;
@@ -279,19 +280,19 @@ public class CommandPay implements CommandExecutor {
 				}
 				
 				masterWallet.transfer(target, amount, cleanMetadata).handle((tx, ex) -> {
-					new TransactionLogEntry()
-						.setSuccess(ex != null)
+					val entry = new TransactionLogEntry()
+						.setSuccess(ex == null)
 						.setError(ex != null ? "Transaction failed." : null)
 						.setType(TransactionType.WITHDRAW)
 						.setFromAccount(ownerAccount)
 						.setDestAddress(target)
 						.setTransaction(tx)
-						.setAmount(amount)
-						.addAsync();
+						.setAmount(amount);
 					
 					if (ex != null) {
 						if (ex instanceof NameNotFoundException || ex.getCause() instanceof NameNotFoundException) {
 							src.sendMessage(Text.of(TextColors.RED, "Name not found! Did you type the address correctly?"));
+							entry.setError("Name not found! Did you type the address correctly?");
 						} else {
 							KristPay.INSTANCE.getLogger().error("Error in transaction", ex);
 							src.sendMessage(Text.of(TextColors.RED, "Transaction failed. Try again later, or contact an admin."));
@@ -323,6 +324,7 @@ public class CommandPay implements CommandExecutor {
 						src.sendMessage(builder.append(Text.of(TextColors.GREEN, ".")).build());
 					}
 					
+					entry.addAsync();
 					return tx;
 				});
 				

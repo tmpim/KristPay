@@ -11,4 +11,6 @@ public class ConfigMasterWallet {
 	@Setting private String privatekey = Utils.generatePassword();
 	
 	@Setting private String primaryDepositName = "server.kst";
+	
+	@Setting private boolean useRawPrivatekey = false;
 }

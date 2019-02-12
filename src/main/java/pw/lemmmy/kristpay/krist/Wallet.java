@@ -13,10 +13,10 @@ public class Wallet {
 	private String address;
 	private int balance;
 	
-	public Wallet(String password) {
+	public Wallet(String password, boolean useRawPrivatekey) {
 		this.password = password;
-		this.privatekey = KristAPI.makeKristWalletPrivatekey(password);
-		this.address = KristAPI.makeKristWalletAddress(password);
+		this.privatekey = useRawPrivatekey ? password : KristAPI.makeKristWalletPrivatekey(password);
+		this.address = useRawPrivatekey ? KristAPI.makeV2Address(password) : KristAPI.makeKristWalletAddress(password);
 	}
 	
 	public void syncWithNode(Consumer<Boolean> callback) {

@@ -38,7 +38,7 @@ public class KristAccount implements UniqueAccount {
 	
 	public KristAccount(String owner) {
 		this.owner = owner;
-		this.depositWallet = new Wallet(Utils.generatePassword());
+		this.depositWallet = new Wallet(Utils.generatePassword(), false);
 		this.balance = 0;
 		needsSave = true;
 	}

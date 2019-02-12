@@ -42,7 +42,7 @@ import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-@Plugin(id = "kristpay", name = "KristPay", version = "2.5.3")
+@Plugin(id = "kristpay", name = "KristPay", version = "2.5.4")
 @Getter
 public class KristPay {
 	public static KristPay INSTANCE;
@@ -78,7 +78,7 @@ public class KristPay {
 			logger.error("Error loading KristPay config", e);
 		}
 		
-		masterWallet = new MasterWallet(config.getMasterWallet().getPrivatekey());
+		masterWallet = new MasterWallet(config.getMasterWallet().getPrivatekey(), config.getMasterWallet().isUseRawPrivatekey());
 		
 		economyService = new KristEconomy();
 		Sponge.getServiceManager().setProvider(this, EconomyService.class, economyService);

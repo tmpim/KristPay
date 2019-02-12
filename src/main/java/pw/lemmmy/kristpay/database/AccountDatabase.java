@@ -72,7 +72,7 @@ public class AccountDatabase {
 			Instant welfareLastPayment = Instant.parse(accountJSON.optString("welfareLastPayment", Instant.now().toString()));
 			int welfareAmount = accountJSON.optInt("welfareAmount", -1);
 			
-			Wallet wallet = new Wallet(privatekey);
+			Wallet wallet = new Wallet(privatekey, false);
 			KristAccount account = new KristAccount(owner, wallet, balance, unseenDeposit, unseenTransfer, welfareCounter, welfareLastPayment, welfareAmount);
 			
 			accounts.put(owner, account);

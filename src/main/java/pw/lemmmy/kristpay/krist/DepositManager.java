@@ -146,15 +146,21 @@ public class DepositManager {
 	}
 	
 	private void handleNameTransaction(KristTransaction transaction) {
-		String fromAddress = transaction.getFrom();
+		String refundAddress = transaction.getFrom();
 		int amount = transaction.getValue();
 		
 		Optional<Map<String, String>> commonMetaOpt = KristAPI.parseCommonMeta(transaction.getMetadata());
 		if (!commonMetaOpt.isPresent()) {
-			refundDeposit(fromAddress, amount, "Could not parse CommonMeta");
+			refundDeposit(refundAddress, amount, "Could not parse CommonMeta");
 			return;
 		}
 		Map<String, String> commonMeta = commonMetaOpt.get();
+
+		// If a return address is specified, send back to that. This should stop infinite transaction loops occuring
+		// when someone uses KristPay on a different server to send Krist to a username which doesn't exist.
+		if (commonMeta.containsKey("return")) {
+			refundAddress = commonMeta.get("return");
+		}
 		
 		if (commonMeta.containsKey("donate") && commonMeta.get("donate").trim().equalsIgnoreCase("true")) {
 			// TODO: notify users with certain permission?
@@ -162,26 +168,26 @@ public class DepositManager {
 		}
 		
 		if (!commonMeta.containsKey("metaname")) {
-			refundDeposit(fromAddress, amount, "Username not specified");
+			refundDeposit(refundAddress, amount, "Username not specified");
 			return;
 		}
 		String metaname = commonMeta.get("metaname");
 		
 		Optional<User> userOpt = userStorage.get(metaname); // case insensitive
 		if (!userOpt.isPresent()) {
-			refundDeposit(fromAddress, amount, "Could not find user");
+			refundDeposit(refundAddress, amount, "Could not find user");
 			return;
 		}
 		User user = userOpt.get();
 		
 		Optional<UniqueAccount> accountOpt = ECONOMY_SERVICE.getOrCreateAccount(user.getUniqueId());
 		if (!accountOpt.isPresent()) {
-			refundDeposit(fromAddress, amount, "Could not find user");
+			refundDeposit(refundAddress, amount, "Could not find user");
 			return;
 		}
 		UniqueAccount account = accountOpt.get();
 		if (!(account instanceof KristAccount)) {
-			refundDeposit(fromAddress, amount, "Could not find user");
+			refundDeposit(refundAddress, amount, "Could not find user");
 			return;
 		}
 		

@@ -37,7 +37,7 @@ import java.util.concurrent.CompletionException;
 import static org.spongepowered.api.command.args.GenericArguments.*;
 
 public class CommandPay implements CommandExecutor {
-	private static final String KRIST_TRANSFER_PATTERN = "^(?:[a-f0-9]{10}|k[a-z0-9]{9}|(?:[a-z0-9-_]{1,32}@)?[a-z0-9]{1,64}\\.kst)$";
+	public static final String KRIST_TRANSFER_PATTERN = "^(?:[a-f0-9]{10}|k[a-z0-9]{9}|(?:[a-z0-9-_]{1,32}@)?[a-z0-9]{1,64}\\.kst)$";
 	
 	private static final CommandElement TARGET_ELEMENT = firstParsing(
 		user(Text.of("user")),

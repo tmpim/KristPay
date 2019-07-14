@@ -13,6 +13,7 @@ import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.text.serializer.TextSerializers;
 import pw.lemmmy.kristpay.KristPay;
 import pw.lemmmy.kristpay.commands.CommandHelpers;
+import pw.lemmmy.kristpay.commands.CommandPay;
 import pw.lemmmy.kristpay.database.AccountDatabase;
 import pw.lemmmy.kristpay.database.TransactionLogEntry;
 import pw.lemmmy.kristpay.database.TransactionType;
@@ -146,42 +147,59 @@ public class DepositManager {
 	}
 	
 	private void handleNameTransaction(KristTransaction transaction) {
-		String fromAddress = transaction.getFrom();
+		String refundAddress = transaction.getFrom();
 		int amount = transaction.getValue();
 		
 		Optional<Map<String, String>> commonMetaOpt = KristAPI.parseCommonMeta(transaction.getMetadata());
 		if (!commonMetaOpt.isPresent()) {
-			refundDeposit(fromAddress, amount, "Could not parse CommonMeta");
+			refundDeposit(refundAddress, amount, "Could not parse CommonMeta");
 			return;
 		}
 		Map<String, String> commonMeta = commonMetaOpt.get();
-		
+
+		// If a return address is specified, send back to that. This should stop infinite transaction loops occuring
+		// when someone uses KristPay on a different server to send Krist to a username which doesn't exist.
+		if (commonMeta.containsKey("return")) {
+			if (commonMeta.get("return").matches(CommandPay.KRIST_TRANSFER_PATTERN)) {
+				refundAddress = commonMeta.get("return");
+			} else {
+				refundDeposit(refundAddress, amount, "Invalid return address");
+				return;
+			}
+		}
+
+
+		// Donation
 		if (commonMeta.containsKey("donate") && commonMeta.get("donate").trim().equalsIgnoreCase("true")) {
 			// TODO: notify users with certain permission?
 			return;
 		}
 		
 		if (!commonMeta.containsKey("metaname")) {
-			refundDeposit(fromAddress, amount, "Username not specified");
+			if (commonMeta.containsKey("error")) return; // We can't find a valid route
+			refundDeposit(refundAddress, amount, "Username not specified");
 			return;
 		}
 		String metaname = commonMeta.get("metaname");
 		
 		Optional<User> userOpt = userStorage.get(metaname); // case insensitive
 		if (!userOpt.isPresent()) {
-			refundDeposit(fromAddress, amount, "Could not find user");
+			if (commonMeta.containsKey("error")) return; // We can't find a valid route
+			refundDeposit(refundAddress, amount, "Could not find user");
 			return;
 		}
 		User user = userOpt.get();
 		
 		Optional<UniqueAccount> accountOpt = ECONOMY_SERVICE.getOrCreateAccount(user.getUniqueId());
 		if (!accountOpt.isPresent()) {
-			refundDeposit(fromAddress, amount, "Could not find user");
+			if (commonMeta.containsKey("error")) return; // We can't find a valid route
+			refundDeposit(refundAddress, amount, "Could not find user");
 			return;
 		}
 		UniqueAccount account = accountOpt.get();
 		if (!(account instanceof KristAccount)) {
-			refundDeposit(fromAddress, amount, "Could not find user");
+			if (commonMeta.containsKey("error")) return; // We can't find a valid route
+			refundDeposit(refundAddress, amount, "Could not find user");
 			return;
 		}
 		

@@ -13,6 +13,7 @@ import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.text.serializer.TextSerializers;
 import pw.lemmmy.kristpay.KristPay;
 import pw.lemmmy.kristpay.commands.CommandHelpers;
+import pw.lemmmy.kristpay.commands.CommandPay;
 import pw.lemmmy.kristpay.database.AccountDatabase;
 import pw.lemmmy.kristpay.database.TransactionLogEntry;
 import pw.lemmmy.kristpay.database.TransactionType;
@@ -159,15 +160,23 @@ public class DepositManager {
 		// If a return address is specified, send back to that. This should stop infinite transaction loops occuring
 		// when someone uses KristPay on a different server to send Krist to a username which doesn't exist.
 		if (commonMeta.containsKey("return")) {
-			refundAddress = commonMeta.get("return");
+			if (commonMeta.get("return").matches(CommandPay.KRIST_TRANSFER_PATTERN)) {
+				refundAddress = commonMeta.get("return");
+			} else {
+				refundDeposit(refundAddress, amount, "Invalid return address");
+				return;
+			}
 		}
-		
+
+
+		// Donation
 		if (commonMeta.containsKey("donate") && commonMeta.get("donate").trim().equalsIgnoreCase("true")) {
 			// TODO: notify users with certain permission?
 			return;
 		}
 		
 		if (!commonMeta.containsKey("metaname")) {
+			if (commonMeta.containsKey("error")) return; // We can't find a valid route
 			refundDeposit(refundAddress, amount, "Username not specified");
 			return;
 		}
@@ -175,6 +184,7 @@ public class DepositManager {
 		
 		Optional<User> userOpt = userStorage.get(metaname); // case insensitive
 		if (!userOpt.isPresent()) {
+			if (commonMeta.containsKey("error")) return; // We can't find a valid route
 			refundDeposit(refundAddress, amount, "Could not find user");
 			return;
 		}
@@ -182,11 +192,13 @@ public class DepositManager {
 		
 		Optional<UniqueAccount> accountOpt = ECONOMY_SERVICE.getOrCreateAccount(user.getUniqueId());
 		if (!accountOpt.isPresent()) {
+			if (commonMeta.containsKey("error")) return; // We can't find a valid route
 			refundDeposit(refundAddress, amount, "Could not find user");
 			return;
 		}
 		UniqueAccount account = accountOpt.get();
 		if (!(account instanceof KristAccount)) {
+			if (commonMeta.containsKey("error")) return; // We can't find a valid route
 			refundDeposit(refundAddress, amount, "Could not find user");
 			return;
 		}

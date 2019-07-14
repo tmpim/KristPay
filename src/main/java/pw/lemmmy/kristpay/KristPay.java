@@ -42,7 +42,7 @@ import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-@Plugin(id = "kristpay", name = "KristPay", version = "2.5.4")
+@Plugin(id = "kristpay", name = "KristPay", version = "2.5.5")
 @Getter
 public class KristPay {
 	public static KristPay INSTANCE;

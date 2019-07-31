@@ -126,7 +126,7 @@ public class CommandTransaction implements CommandExecutor {
 			.append(Text.of(TextColors.GRAY, "Krist TXID: "))
 			.append(Text.of(TextColors.YELLOW, entry.getKristTXID()))
 			.append(Text.of(")"))
-			.onHover(TextActions.showText(Text.of(TextColors.AQUA, "https://kristweb.lemmmy.pw/transactions/" + entry.getKristTXID())))
+			.onHover(TextActions.showText(Text.of(TextColors.AQUA, "https://krist.club/transactions/" + entry.getKristTXID())))
 			.onClick(TextActions.openUrl(getKristTransactionURL(entry)))
 			.build());
 		contents.add(amountBuilder.build());
@@ -209,7 +209,7 @@ public class CommandTransaction implements CommandExecutor {
 	
 	private URL getKristTransactionURL(TransactionLogEntry entry) throws CommandException {
 		try {
-			return new URL("https://kristweb.lemmmy.pw/transactions/" + entry.getKristTXID());
+			return new URL("https://krist.club/transactions/" + entry.getKristTXID());
 		} catch (MalformedURLException e) {
 			KristPay.INSTANCE.getLogger().error("Ughrrr", e);
 		}

@@ -77,7 +77,7 @@ public class CommandHelpers {
 	
 	private static URL getKristWebURL(String endpoint, String url) {
 		try {
-			return new URL("https://kristweb.lemmmy.pw/" + endpoint + "/" + URLEncoder.encode(url, "UTF-8"));
+			return new URL("https://krist.club/" + endpoint + "/" + URLEncoder.encode(url, "UTF-8"));
 		} catch (MalformedURLException | UnsupportedEncodingException e) {
 			KristPay.INSTANCE.getLogger().error("Ughrrr", e);
 		}

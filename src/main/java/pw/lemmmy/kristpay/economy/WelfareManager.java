@@ -12,7 +12,10 @@ import pw.lemmmy.kristpay.database.TransactionLogEntry;
 import pw.lemmmy.kristpay.database.TransactionType;
 
 import java.math.BigDecimal;
-import java.time.*;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.concurrent.TimeUnit;
 
 public class WelfareManager {
@@ -60,6 +63,7 @@ public class WelfareManager {
 	}
 	
 	public static void checkWelfare(Player player, KristAccount account) {
+		if (!player.hasPermission("kristpay.welfare.receive")) return;
 		if (account.getWelfareCounter() == 0 || canIncreaseCounter(account)) {
 			account.incrementWelfareCounter();
 			

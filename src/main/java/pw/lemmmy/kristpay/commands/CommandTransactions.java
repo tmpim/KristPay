@@ -45,7 +45,7 @@ public class CommandTransactions implements CommandExecutor {
 	
 	private static final EconomyService ECONOMY_SERVICE = KristPay.INSTANCE.getEconomyService();
 	
-	private static final SimpleDateFormat timeFormat = new SimpleDateFormat("MM-dd HH:mm");
+	private static final SimpleDateFormat timeFormat = new SimpleDateFormat("YYYY-MM-dd HH:mm");
 	private static final SimpleDateFormat largeTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	
 	@Override

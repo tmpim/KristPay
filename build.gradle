@@ -1,4 +1,5 @@
 plugins {
+	id 'net.kyori.blossom' version '1.1.0'
     id 'com.github.johnrengelman.shadow' version '2.0.3'
     id 'org.spongepowered.plugin' version '0.8.1'
     id 'io.franzbecker.gradle-lombok' version '1.11'
@@ -7,12 +8,17 @@ plugins {
 }
 
 group 'pw.lemmmy'
-version '2.5.7'
+version '2.5.8'
 
 sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
+}
+
+blossom {
+	replaceTokenIn('src/main/java/pw/lemmmy/kristpay/KristPay.java')
+	replaceToken '@version@', project.version
 }
 
 lombok {
@@ -37,6 +43,8 @@ dependencies {
 }
 
 shadowJar {
+	classifier = ''
+
     relocate 'org.apache.http', 'shadow.pw.lemmmy.kristpay.http'
     relocate 'org.apache.commons.logging', 'shadow.pw.lemmmy.kristpay.logging'
 

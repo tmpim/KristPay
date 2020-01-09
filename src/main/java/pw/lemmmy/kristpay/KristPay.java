@@ -30,7 +30,6 @@ import pw.lemmmy.kristpay.config.Config;
 import pw.lemmmy.kristpay.config.ConfigLoader;
 import pw.lemmmy.kristpay.database.AccountDatabase;
 import pw.lemmmy.kristpay.database.Database;
-import pw.lemmmy.kristpay.database.FaucetReward;
 import pw.lemmmy.kristpay.economy.*;
 import pw.lemmmy.kristpay.krist.DepositManager;
 import pw.lemmmy.kristpay.krist.KristClientManager;
@@ -39,10 +38,9 @@ import pw.lemmmy.kristpay.prometheus.PrometheusManager;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-@Plugin(id = "kristpay", name = "KristPay", version = "2.5.5")
+@Plugin(id = "kristpay", name = "KristPay", version = "@version@")
 @Getter
 public class KristPay {
 	public static KristPay INSTANCE;

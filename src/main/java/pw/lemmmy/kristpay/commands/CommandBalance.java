@@ -48,7 +48,7 @@ public class CommandBalance implements CommandExecutor {
 			Text.builder()
 				.append(Text.of(TextColors.YELLOW, user.getName()))
 				.append(Text.of(TextColors.GREEN, "'s balance: "))
-				.append(CommandHelpers.formatKrist(balance))
+				.append(CommandHelpers.formatKrist(balance, true))
 				.append(Text.of(TextColors.GREEN, "."))
 				.build()
 		);

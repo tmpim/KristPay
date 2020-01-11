@@ -87,7 +87,7 @@ public class FaucetManager {
 				
 				player.sendMessage(Text.builder()
 					.append(Text.of(TextColors.GREEN, "You have not yet redeemed your faucet reward of "))
-					.append(CommandHelpers.formatKrist(FaucetManager.getRewardValue(nextTier)))
+					.append(CommandHelpers.formatKrist(FaucetManager.getRewardValue(nextTier), true))
 					.append(Text.of(TextColors.GREEN, ". Run "))
 					.append(Text.of(TextColors.AQUA, "/faucet"))
 					.append(Text.of(TextColors.GREEN, " to redeem it!"))

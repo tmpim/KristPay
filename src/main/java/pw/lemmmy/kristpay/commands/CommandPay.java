@@ -25,14 +25,11 @@ import pw.lemmmy.kristpay.KristPay;
 import pw.lemmmy.kristpay.database.TransactionLogEntry;
 import pw.lemmmy.kristpay.database.TransactionType;
 import pw.lemmmy.kristpay.economy.KristAccount;
-import pw.lemmmy.kristpay.krist.KristTransaction;
 import pw.lemmmy.kristpay.krist.MasterWallet;
 import pw.lemmmy.kristpay.krist.NameNotFoundException;
 
 import java.math.BigDecimal;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 
 import static org.spongepowered.api.command.args.GenericArguments.*;
 
@@ -121,7 +118,7 @@ public class CommandPay implements CommandExecutor {
 		else if (amount >= WARN_LIMIT_HARD) {
 			message = Text.builder()
 				.append(Text.of(TextColors.YELLOW, "(more than "))
-				.append(CommandHelpers.formatKrist(WARN_LIMIT_HARD))
+				.append(CommandHelpers.formatKrist(WARN_LIMIT_HARD, true))
 				.append(Text.of(TextColors.YELLOW, "!)"))
 				.build();
 		}
@@ -182,7 +179,7 @@ public class CommandPay implements CommandExecutor {
 					Text.builder()
 						.append(Text.of(TextColors.DARK_GREEN, "Success! "))
 						.append(Text.of(TextColors.GREEN, "Transferred "))
-						.append(CommandHelpers.formatKrist(result.getAmount()))
+						.append(CommandHelpers.formatKrist(result.getAmount(), true))
 						.append(Text.of(TextColors.GREEN, " to player "))
 						.append(Text.of(TextColors.YELLOW, target.getName()))
 						.append(Text.of(TextColors.GREEN, "."))
@@ -194,7 +191,7 @@ public class CommandPay implements CommandExecutor {
 				if (targetPlayerOpt.isPresent()) {
 					Text.Builder builder = Text.builder()
 						.append(Text.of(TextColors.GREEN, "You have received "))
-						.append(CommandHelpers.formatKrist(result.getAmount()))
+						.append(CommandHelpers.formatKrist(result.getAmount(), true))
 						.append(Text.of(TextColors.GREEN, " from player "))
 						.append(Text.of(TextColors.YELLOW, owner.getName()))
 						.append(Text.of(TextColors.GREEN, "."));
@@ -311,7 +308,7 @@ public class CommandPay implements CommandExecutor {
 						Text.Builder builder = Text.builder()
 							.append(Text.of(TextColors.DARK_GREEN, "Success! "))
 							.append(Text.of(TextColors.GREEN, "Transferred "))
-							.append(CommandHelpers.formatKrist(result.getAmount()))
+							.append(CommandHelpers.formatKrist(result.getAmount(), true))
 							.append(Text.of(TextColors.GREEN, " to address "))
 							.append(CommandHelpers.formatAddress(target));
 						

@@ -8,4 +8,7 @@ import ninja.leaping.configurate.objectmapping.serialize.ConfigSerializable;
 @Getter
 public class ConfigEconomy {
 	@Setting private int startingBalance = 100;
+	
+	@Setting private String kristSymbol = "\ue000";
+	@Setting private String kristCode = "KST";
 }

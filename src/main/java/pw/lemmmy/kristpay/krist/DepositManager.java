@@ -89,7 +89,7 @@ public class DepositManager {
 				if (!player.isOnline()) return tx;
 				
 				Text.Builder builder = Text.builder()
-					.append(CommandHelpers.formatKrist(depositAmount))
+					.append(CommandHelpers.formatKrist(depositAmount, true))
 					.append(Text.of(TextColors.GREEN, " was deposited into your account"));
 				
 				if (fromAddress != null) {

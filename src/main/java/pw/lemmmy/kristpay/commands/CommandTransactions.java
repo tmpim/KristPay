@@ -138,13 +138,13 @@ public class CommandTransactions implements CommandExecutor {
 				case FAUCET:
 					builder
 						.append(Text.of(TextColors.YELLOW, "Redeemed "))
-						.append(CommandHelpers.formatKrist(entry.getAmount(), successColour))
+						.append(CommandHelpers.formatKrist(entry.getAmount(), successColour, false))
 						.append(Text.of(TextColors.YELLOW, " via faucet"));
 					break;
 				case WELFARE:
 					builder
 						.append(Text.of(TextColors.YELLOW, "Redeemed "))
-						.append(CommandHelpers.formatKrist(entry.getAmount(), successColour))
+						.append(CommandHelpers.formatKrist(entry.getAmount(), successColour, false))
 						.append(Text.of(TextColors.YELLOW, " via basic income"));
 					break;
 				case DEPOSIT:
@@ -153,7 +153,7 @@ public class CommandTransactions implements CommandExecutor {
 					builder
 						.append(from.get())
 						.append(Text.of(TextColors.WHITE, " \u27a1 "))
-						.append(CommandHelpers.formatKrist(entry.getAmount(), successColour))
+						.append(CommandHelpers.formatKrist(entry.getAmount(), successColour, false))
 						.append(Text.of(TextColors.WHITE, " \u27a1 "))
 						.append(to.get());
 					break;

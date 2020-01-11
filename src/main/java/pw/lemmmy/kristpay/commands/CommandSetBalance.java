@@ -58,7 +58,7 @@ public class CommandSetBalance implements CommandExecutor {
 						.append(Text.of(TextColors.GREEN, "Set balance of player "))
 						.append(Text.of(TextColors.YELLOW, target.getName()))
 						.append(Text.of(TextColors.GREEN, " to "))
-						.append(CommandHelpers.formatKrist(balance))
+						.append(CommandHelpers.formatKrist(balance, true))
 						.append(Text.of(TextColors.GREEN, "."))
 						.build()
 				);

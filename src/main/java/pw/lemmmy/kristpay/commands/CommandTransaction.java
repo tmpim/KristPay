@@ -120,7 +120,7 @@ public class CommandTransaction implements CommandExecutor {
 		
 		Text.Builder amountBuilder = Text.builder()
 			.append(Text.of(TextColors.GREEN, "Amount: "))
-			.append(CommandHelpers.formatKrist(entry.getAmount()));
+			.append(CommandHelpers.formatKrist(entry.getAmount(), true));
 		if (entry.getKristTXID() != -1) amountBuilder.append(Text.builder()
 			.append(Text.of(" ("))
 			.append(Text.of(TextColors.GRAY, "Krist TXID: "))

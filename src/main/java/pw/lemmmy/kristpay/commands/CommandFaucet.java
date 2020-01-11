@@ -55,7 +55,7 @@ public class CommandFaucet implements CommandExecutor {
 				.append(Text.of("You can next redeem in: "))
 				.append(Text.of(TextColors.YELLOW, DurationFormatUtils.formatDurationWords(duration, true, true)))
 				.append(Text.of("\nNext reward: "))
-				.append(CommandHelpers.formatKrist(nextReward))
+				.append(CommandHelpers.formatKrist(nextReward, true))
 				.build());
 		} else {
 			FaucetReward newReward = FaucetManager.redeem(ip, account, nextTier);
@@ -66,12 +66,12 @@ public class CommandFaucet implements CommandExecutor {
 			src.sendMessage(Text.builder()
 				.append(Text.of(TextColors.DARK_GREEN, "Success! "))
 				.append(Text.of(TextColors.GREEN, "Redeemed your faucet reward of "))
-				.append(CommandHelpers.formatKrist(newReward.getValue()))
+				.append(CommandHelpers.formatKrist(newReward.getValue(), true))
 				.append(Text.of(TextColors.GREEN, ".\n"))
 				.append(Text.of(TextColors.GREEN, "You can next redeem in: "))
 				.append(Text.of(TextColors.YELLOW, DurationFormatUtils.formatDurationWords(duration, true, true)))
 				.append(Text.of(TextColors.GREEN, "\nNext reward: "))
-				.append(CommandHelpers.formatKrist(nextReward))
+				.append(CommandHelpers.formatKrist(nextReward, true))
 				.build());
 		}
 		

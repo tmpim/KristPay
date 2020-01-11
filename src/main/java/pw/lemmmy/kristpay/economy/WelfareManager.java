@@ -57,7 +57,7 @@ public class WelfareManager {
 	private static void notifyReward(KristAccount account, Player player) {
 		player.sendMessage(Text.builder()
 			.append(Text.of(TextColors.GREEN, "You received today's "))
-			.append(CommandHelpers.formatKrist(getWelfareAmount(account)))
+			.append(CommandHelpers.formatKrist(getWelfareAmount(account), true))
 			.append(Text.of(TextColors.GREEN, " daily login bonus."))
 			.build());
 	}

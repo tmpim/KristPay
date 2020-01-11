@@ -48,7 +48,7 @@ public class CommandSetWelfare implements CommandExecutor {
 				.append(Text.of(TextColors.GREEN, "Set welfare amount of player "))
 				.append(Text.of(TextColors.YELLOW, target.getName()))
 				.append(Text.of(TextColors.GREEN, " to "))
-				.append(CommandHelpers.formatKrist(amount))
+				.append(CommandHelpers.formatKrist(amount, true))
 				.append(Text.of(TextColors.GREEN, "."))
 				.build()
 		);

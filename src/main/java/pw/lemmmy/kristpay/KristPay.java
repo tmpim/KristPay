@@ -162,12 +162,12 @@ public class KristPay {
 						int unseenTransfer = account.getUnseenTransfer();
 						
 						if (unseenDeposit > 0) player.sendMessage(Text.builder()
-							.append(CommandHelpers.formatKrist(unseenDeposit))
+							.append(CommandHelpers.formatKrist(unseenDeposit, true))
 							.append(Text.of(TextColors.GREEN, " was deposited into your account while you were offline."))
 							.build());
 						
 						if (unseenTransfer > 0) player.sendMessage(Text.builder()
-							.append(CommandHelpers.formatKrist(unseenTransfer))
+							.append(CommandHelpers.formatKrist(unseenTransfer, true))
 							.append(Text.of(TextColors.GREEN, " was transferred into your account while you were offline."))
 							.build());
 						

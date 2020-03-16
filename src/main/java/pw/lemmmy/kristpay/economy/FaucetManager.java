@@ -76,6 +76,7 @@ public class FaucetManager {
 	public static void handleLogin(Player player, KristAccount account) {
 		Task.builder()
 			.execute(() -> {
+				if(!player.hasPermission("kristpay.command.faucet.base")) return; // don't notify if the player is not allowed to execute the /faucet command
 				Optional<FaucetReward> lastRewardOpt = FaucetReward.getLastReward(
 					KristPay.INSTANCE.getDatabase().getDataSource(),
 					player.getConnection().getAddress(), account

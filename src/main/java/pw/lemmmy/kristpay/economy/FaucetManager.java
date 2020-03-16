@@ -1,6 +1,7 @@
 package pw.lemmmy.kristpay.economy;
 
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.service.economy.account.UniqueAccount;
@@ -9,6 +10,7 @@ import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.format.TextColors;
 import pw.lemmmy.kristpay.KristPay;
 import pw.lemmmy.kristpay.commands.CommandHelpers;
+import pw.lemmmy.kristpay.commands.CommandFaucet;
 import pw.lemmmy.kristpay.config.ConfigFaucet;
 import pw.lemmmy.kristpay.database.FaucetReward;
 import pw.lemmmy.kristpay.database.TransactionLogEntry;
@@ -76,7 +78,11 @@ public class FaucetManager {
 	public static void handleLogin(Player player, KristAccount account) {
 		Task.builder()
 			.execute(() -> {
-				if(!player.hasPermission("kristpay.command.faucet.base")) return; // don't notify if the player is not allowed to execute the /faucet command
+				try {
+					CommandFaucet.SPEC.checkPermission(player);
+				} catch (CommandException e) {
+					return; // The player does not have the permissions for /faucet
+				}
 				Optional<FaucetReward> lastRewardOpt = FaucetReward.getLastReward(
 					KristPay.INSTANCE.getDatabase().getDataSource(),
 					player.getConnection().getAddress(), account

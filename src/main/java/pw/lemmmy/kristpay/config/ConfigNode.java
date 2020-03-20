@@ -7,6 +7,5 @@ import ninja.leaping.configurate.objectmapping.serialize.ConfigSerializable;
 @ConfigSerializable
 @Getter
 public class ConfigNode {
-	// TODO: change to public krist node before release.
-	@Setting private String address = "http://localhost:3002";
+	@Setting private String address = "https://krist.ceriat.net";
 }

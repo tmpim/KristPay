@@ -32,8 +32,8 @@ public class KristTransaction {
 			Date.from(ZonedDateTime.parse(transactionJSON.optString("time", "")).toInstant()) // wtf?
 		);
 		
-		if (transactionJSON.has("name")) transaction.name = transactionJSON.getString("name");
-		if (transactionJSON.has("metadata")) transaction.metadata = transactionJSON.getString("metadata");
+		transaction.name = transactionJSON.optString("name", null);
+		transaction.metadata = transactionJSON.optString("metadata", null);
 		
 		return transaction;
 	}

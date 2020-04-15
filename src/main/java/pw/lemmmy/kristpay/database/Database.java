@@ -12,12 +12,11 @@ import java.sql.SQLException;
 
 public class Database {
 	private static final String DB_URI = KristPay.INSTANCE.getConfig().getDatabase().getConnectionURI();
-	
-	private SqlService sql;
+
 	@Getter private DataSource dataSource;
 	
 	public Database() {
-		sql = Sponge.getServiceManager().provide(SqlService.class).get();
+		SqlService sql = Sponge.getServiceManager().provide(SqlService.class).get();
 		
 		try {
 			dataSource = sql.getDataSource(DB_URI);
@@ -61,12 +60,29 @@ public class Database {
 			"expires TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP," +
 			"PRIMARY KEY (id)" +
 		");";
+
+		String accountTable = "CREATE TABLE IF NOT EXISTS accounts (" +
+			"id INT NOT NULL AUTO_INCREMENT," +
+			"deposit_address CHAR(10) NOT NULL," +
+			"deposit_password VARCHAR(100) NOT NULL," +
+			"owner CHAR(36) NOT NULL," +
+			"balance INT NOT NULL," +
+			"unseen_deposit INT NOT NULL," +
+			"unseen_transfer INT NOT NULL," +
+			"welfare_counter INT NOT NULL," +
+			"welfare_amount INT NOT NULL DEFAULT -1," +
+			"welfare_last_payment TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP," +
+			"PRIMARY KEY (id)," +
+			"UNIQUE INDEX owner (owner)" +
+		");";
 		
 		try (Connection conn = dataSource.getConnection();
 			 PreparedStatement stmtTxLogTable = conn.prepareStatement(txLogTable);
-			 PreparedStatement stmtFaucetRewardTable = conn.prepareStatement(faucetRewardTable)) {
+			 PreparedStatement stmtFaucetRewardTable = conn.prepareStatement(faucetRewardTable);
+			 PreparedStatement stmtAccountTable = conn.prepareStatement(accountTable)) {
 			stmtTxLogTable.executeUpdate();
 			stmtFaucetRewardTable.executeUpdate();
+			stmtAccountTable.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

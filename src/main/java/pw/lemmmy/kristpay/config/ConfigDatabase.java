@@ -8,7 +8,7 @@ import ninja.leaping.configurate.objectmapping.serialize.ConfigSerializable;
 @Getter
 public class ConfigDatabase {
 	@Setting
-	private String connectionURI = "jdbc:h2:./config/kristpay/kristpay.misc.db";
+	private String connectionURI = "jdbc:mysql://localhost/kristpay?user=kristpay&password=";
 	
 	@Setting
 	private int saveInterval = 30;

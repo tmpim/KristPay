@@ -108,7 +108,6 @@ public class KristPay {
 		
 		try {
 			accountDatabase.load();
-			database.load();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -230,10 +229,8 @@ public class KristPay {
 		}
 		
 		if (database == null) {
-			database = new Database();
-			
 			try {
-				database.load();
+				database = new Database();
 			} catch (Exception e) {
 				logger.error("Error loading KristPay database", e);
 			}

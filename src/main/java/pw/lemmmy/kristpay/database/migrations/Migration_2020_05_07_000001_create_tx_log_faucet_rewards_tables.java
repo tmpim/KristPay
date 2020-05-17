@@ -8,7 +8,7 @@ import java.sql.SQLException;
 /**
  * The initial database schema, from the original implementation of transaction logging in 2018.
  */
-public class Migration_2020_05_07__001 extends Migration {
+public class Migration_2020_05_07_000001_create_tx_log_faucet_rewards_tables extends Migration {
     @Override
     public void run(DataSource dataSource, Connection conn) throws SQLException {
         String txLogTable = "CREATE TABLE IF NOT EXISTS tx_log (\n" +

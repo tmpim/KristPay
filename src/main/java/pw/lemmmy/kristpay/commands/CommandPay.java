@@ -39,7 +39,7 @@ import static org.spongepowered.api.text.Text.of;
 import static org.spongepowered.api.text.format.TextColors.*;
 
 public class CommandPay implements CommandExecutor {
-	public static final String KRIST_TRANSFER_PATTERN = "^(?:[a-f0-9]{10}|k[a-z0-9]{9}|(?:[a-z0-9-_]{1,32}@)?[a-z0-9]{1,64}\\.kst)$";
+	public static final String KRIST_TRANSFER_PATTERN = "^(?:[a-f0-9]{10}|k[a-z0-9]{9}|(?:[a-zA-Z0-9-_]{1,32}@)?[a-z0-9]{1,64}\\.kst)$";
 	
 	private static final CommandElement TARGET_ELEMENT = firstParsing(
 		user(of("user")),

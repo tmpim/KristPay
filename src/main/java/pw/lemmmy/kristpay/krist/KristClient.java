@@ -40,12 +40,14 @@ public class KristClient extends WebSocketClient {
 			JSONObject data = new JSONObject(message);
 			
 			// handle response callbacks
-			if (data.has("id") && responseCallbacks.containsKey(data.getInt("id")))
+			if (data.has("id") && responseCallbacks.containsKey(data.getInt("id"))) {
 				responseCallbacks.remove(data.getInt("id")).accept(data);
+			}
 			
 			// handle events etc
-			if (data.has("type"))
+			if (data.has("type")) {
 				handleMessage(data.getString("type"), data);
+			}
 		} catch (Exception e) {
 			KristPay.INSTANCE.getLogger().error("Error handling websocket message", e);
 		}
@@ -59,7 +61,7 @@ public class KristClient extends WebSocketClient {
 		message.put("id", id);
 		
 		if (onResponse != null) responseCallbacks.put(id, onResponse);
-		
+
 		send(message.toString());
 	}
 	
@@ -92,7 +94,7 @@ public class KristClient extends WebSocketClient {
 				break;
 			case "event":
 				String event = data.optString("event");
-				
+
 				if (event.equals("transaction")) handleTransactionEvent(data);
 				
 				break;

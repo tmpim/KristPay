@@ -329,9 +329,9 @@ public class CommandPay implements CommandExecutor {
 							.append(of(GREEN, " to address "))
 							.append(CommandHelpers.formatAddress(target));
 						
-						if (!target.equalsIgnoreCase(tx.getTo())) {
+						if (!target.equalsIgnoreCase(tx.to)) {
 							builder.append(of(GREEN, " ("))
-								.append(CommandHelpers.formatAddress(tx.getTo()))
+								.append(CommandHelpers.formatAddress(tx.to))
 								.append(of(GREEN, ")"));
 						}
 						

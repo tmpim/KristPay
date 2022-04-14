@@ -1,5 +1,6 @@
 package pw.lemmmy.kristpay.krist;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import org.json.JSONObject;
@@ -7,21 +8,13 @@ import org.json.JSONObject;
 import java.time.ZonedDateTime;
 import java.util.Date;
 
-@Getter
+@AllArgsConstructor
 public class KristTransaction {
-	private int id;
-	@NonNull private String from, to;
-	private int value;
-	@NonNull private Date time;
-	private String name, metadata;
-	
-	public KristTransaction(int id, String from, String to, int value, Date time) {
-		this.id = id;
-		this.from = from;
-		this.to = to;
-		this.value = value;
-		this.time = time;
-	}
+	public final int id;
+	@NonNull public final String from, to;
+	public final int value;
+	@NonNull public final Date time;
+	public final String name, metadata;
 	
 	public static KristTransaction fromJSON(JSONObject transactionJSON) {
 		KristTransaction transaction = new KristTransaction(
@@ -29,11 +22,10 @@ public class KristTransaction {
 			transactionJSON.optString("from", ""),
 			transactionJSON.optString("to", ""),
 			transactionJSON.optInt("value", 0),
-			Date.from(ZonedDateTime.parse(transactionJSON.optString("time", "")).toInstant()) // wtf?
+			Date.from(ZonedDateTime.parse(transactionJSON.optString("time", "")).toInstant()), // wtf?
+			transactionJSON.optString("name", null),
+			transactionJSON.optString("metadata", null)
 		);
-		
-		transaction.name = transactionJSON.optString("name", null);
-		transaction.metadata = transactionJSON.optString("metadata", null);
 		
 		return transaction;
 	}

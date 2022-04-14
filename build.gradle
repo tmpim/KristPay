@@ -8,7 +8,7 @@ plugins {
 }
 
 group 'pw.lemmmy'
-version '2.6.3'
+version '2.6.4'
 
 sourceCompatibility = 1.8
 

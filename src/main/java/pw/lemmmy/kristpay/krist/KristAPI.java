@@ -46,7 +46,7 @@ public class KristAPI {
 			if (body.getString("error").equals("name_not_found")) throw new NameNotFoundException();
 			else throw new KristException(body.getString("error"));
 		}
-		
+
 		return KristTransaction.fromJSON(body.getJSONObject("transaction"));
 	}
 	

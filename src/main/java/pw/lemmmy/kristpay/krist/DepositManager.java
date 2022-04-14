@@ -21,6 +21,7 @@ import pw.lemmmy.kristpay.economy.KristAccount;
 
 import java.math.BigDecimal;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -60,7 +61,7 @@ public class DepositManager {
 		Wallet depositWallet = account.getDepositWallet();
 		if (depositWallet == null) return;
 		
-		String fromAddress = fromTx != null ? fromTx.getFrom() : null;
+		String fromAddress = fromTx != null ? fromTx.from : null;
 		
 		depositWallet.transfer(masterWallet.getAddress(), depositAmount, null).handle((tx, ex) -> {
 			account.deposit(
@@ -134,23 +135,25 @@ public class DepositManager {
 	}
 	
 	public void handleTransaction(KristTransaction transaction) {
-		String address = transaction.getTo();
-		
+		String address = transaction.to;
+
 		if (address.equalsIgnoreCase(masterWallet.getAddress())
-			&& transaction.getMetadata() != null && !transaction.getMetadata().isEmpty()) {
+			&& transaction.metadata != null
+			&& !transaction.metadata.isEmpty()
+			&& !Objects.equals(transaction.metadata, "null")) {
 			handleNameTransaction(transaction);
 		} else {
-			findAccountByAddress(address).ifPresent(account -> handleDeposit(account, transaction, null, transaction.getValue()));
+			findAccountByAddress(address).ifPresent(account -> handleDeposit(account, transaction, null, transaction.value));
 		}
-		
+
 		masterWallet.syncWithNode(cb -> {});
 	}
 	
 	private void handleNameTransaction(KristTransaction transaction) {
-		String refundAddress = transaction.getFrom();
-		int amount = transaction.getValue();
+		String refundAddress = transaction.from;
+		int amount = transaction.value;
 		
-		Optional<Map<String, String>> commonMetaOpt = KristAPI.parseCommonMeta(transaction.getMetadata());
+		Optional<Map<String, String>> commonMetaOpt = KristAPI.parseCommonMeta(transaction.metadata);
 		if (!commonMetaOpt.isPresent()) {
 			refundDeposit(refundAddress, amount, "Could not parse CommonMeta");
 			return;
@@ -167,7 +170,6 @@ public class DepositManager {
 				return;
 			}
 		}
-
 
 		// Donation
 		if (commonMeta.containsKey("donate") && commonMeta.get("donate").trim().equalsIgnoreCase("true")) {

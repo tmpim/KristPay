@@ -83,9 +83,9 @@ public class TransactionLogEntry {
 	
 	public TransactionLogEntry setTransaction(KristTransaction transaction) {
 		if (transaction != null) {
-			kristTXID = transaction.getId();
-			fromAddress = transaction.getFrom();
-			toAddress = transaction.getTo();
+			kristTXID = transaction.id;
+			fromAddress = transaction.from;
+			toAddress = transaction.to;
 		}
 		
 		return this;

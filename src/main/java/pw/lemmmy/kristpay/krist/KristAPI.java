@@ -21,11 +21,8 @@ public class KristAPI {
 		return KristPay.INSTANCE.getConfig().getNode().getAddress();
 	}
 	
-	public static Optional<String> getWebsocketURL(String privatekey) throws UnirestException {
-		HttpResponse<JsonNode> response = Unirest.post(getKristNode() + "/ws/start")
-			.field("privatekey", privatekey)
-			.asJson();
-		
+	public static Optional<String> getWebsocketURL() throws UnirestException {
+		HttpResponse<JsonNode> response = Unirest.post(getKristNode() + "/ws/start").asJson();
 		JSONObject body = response.getBody().getObject();
 		
 		if (!body.getBoolean("ok")) return Optional.empty();

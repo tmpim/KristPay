@@ -214,11 +214,12 @@ public class KristPay {
 				.name("KristPay - Automatic account database save")
 				.submit(INSTANCE);
 			
-			Task.builder().execute(() -> this.getAccountDatabase().syncWallets())
+			Task.builder().execute(() -> this.getDepositManager().miningManager.syncDepositMiningWallets())
 				.async()
-				.delay(2, TimeUnit.MINUTES)
-				.interval(config.getDatabase().getLegacyWalletSyncInterval(), TimeUnit.SECONDS)
-				.name("KristPay - Legacy wallet sync")
+				.delay(config.getNode().isDebugTiming() ? 45 : 2,
+					config.getNode().isDebugTiming() ? TimeUnit.SECONDS : TimeUnit.MINUTES)
+				.interval(config.getNode().isDebugTiming() ? 1 : 30, TimeUnit.MINUTES)
+				.name("KristPay - Mining wallet sync")
 				.submit(INSTANCE);
 			
 			Task.builder().execute(WelfareManager::checkAllOnlinePlayers)

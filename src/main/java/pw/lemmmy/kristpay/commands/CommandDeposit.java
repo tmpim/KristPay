@@ -1,5 +1,6 @@
 package pw.lemmmy.kristpay.commands;
 
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -16,6 +17,9 @@ import pw.lemmmy.kristpay.economy.KristAccount;
 
 import static org.spongepowered.api.command.args.GenericArguments.flags;
 import static org.spongepowered.api.command.args.GenericArguments.none;
+import static org.spongepowered.api.text.Text.of;
+import static org.spongepowered.api.text.format.TextColors.GREEN;
+import static org.spongepowered.api.text.format.TextColors.YELLOW;
 
 public class CommandDeposit implements CommandExecutor {
 	public static final CommandSpec SPEC = CommandSpec.builder()
@@ -40,6 +44,15 @@ public class CommandDeposit implements CommandExecutor {
 				.append(Text.of(TextColors.AQUA, TextStyles.ITALIC, "mining"))
 				.append(Text.of(TextColors.GREEN, " deposit address: "))
 				.append(CommandHelpers.formatAddress(ownerAccount.getDepositWallet().getAddress()))
+				.build()
+			);
+
+			long duration = KristPay.INSTANCE.getDepositManager().miningManager.getNextRun()
+				.toEpochMilli() - System.currentTimeMillis();
+			src.sendMessage(Text.builder()
+				.append(of(GREEN, "Your next mining deposit is in: "))
+				.append(of(YELLOW, DurationFormatUtils.formatDurationWords(duration, true, true)))
+				.append(of(GREEN, "."))
 				.build()
 			);
 		} else {

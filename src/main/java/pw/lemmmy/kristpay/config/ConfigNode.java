@@ -8,4 +8,5 @@ import ninja.leaping.configurate.objectmapping.serialize.ConfigSerializable;
 @Getter
 public class ConfigNode {
 	@Setting private String address = "https://krist.ceriat.net";
+	@Setting private boolean debugTiming = false;
 }

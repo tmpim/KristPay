@@ -87,8 +87,6 @@ public class KristClient extends WebSocketClient {
 				masterWallet.syncWithNode(balance ->
 					KristPay.INSTANCE.getLogger().info("Master wallet balance: " + masterWallet.getBalance() + " KST"));
 				
-				KristPay.INSTANCE.getAccountDatabase().syncWallets();
-				
 				subscribe("transactions");
 				
 				break;

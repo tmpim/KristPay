@@ -41,7 +41,7 @@ public class KristClientManager implements Runnable {
 			KristPay.INSTANCE.getLogger().info("Master address is " + KristPay.INSTANCE.getMasterWallet().getAddress());
 			KristPay.INSTANCE.getLogger().info("Websocket connecting to krist node " + KristAPI.getKristNode());
 			
-			Optional<String> websocketURL = KristAPI.getWebsocketURL("test");
+			Optional<String> websocketURL = KristAPI.getWebsocketURL();
 			
 			if (websocketURL.isPresent()) {
 				kristClient = new KristClient(this, new URI(websocketURL.get()));

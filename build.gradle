@@ -8,7 +8,7 @@ plugins {
 }
 
 group 'pw.lemmmy'
-version '2.6.4'
+version '2.7.0'
 
 sourceCompatibility = 1.8
 
@@ -40,6 +40,8 @@ dependencies {
 	compile 'io.prometheus:simpleclient_common:0.0.26'
 	compile 'org.eclipse.jetty:jetty-server:9.4.6.v20170531'
 	compile 'javax.servlet:javax.servlet-api:4.0.0'
+
+    implementation 'org.apache.commons:commons-collections4:4.4'
 }
 
 shadowJar {
@@ -47,6 +49,7 @@ shadowJar {
 
     relocate 'org.apache.http', 'shadow.pw.lemmmy.kristpay.http'
     relocate 'org.apache.commons.logging', 'shadow.pw.lemmmy.kristpay.logging'
+    relocate 'org.apache.commons.collections4', 'shadow.pw.lemmmy.kristpay.collections4'
 
 	relocate 'org.eclipse.jetty', 'shadow.pw.lemmmy.kristpay.jetty'
 	relocate 'io.prometheus', 'shadow.pw.lemmmy.kristpay.prometheus.client'

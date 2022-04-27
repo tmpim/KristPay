@@ -27,23 +27,18 @@ import java.util.UUID;
 
 public class DepositManager {
 	private static final EconomyService ECONOMY_SERVICE = KristPay.INSTANCE.getEconomyService();
+
+	private final MasterWallet masterWallet;
 	
-	private AccountDatabase accountDatabase;
-	private MasterWallet masterWallet;
-	
-	private UserStorageService userStorage;
+	private final UserStorageService userStorage;
+
+	public final DepositMiningManager miningManager;
 	
 	public DepositManager(AccountDatabase accountDatabase, MasterWallet masterWallet) {
-		this.accountDatabase = accountDatabase;
 		this.masterWallet = masterWallet;
+		this.miningManager = new DepositMiningManager(accountDatabase, masterWallet, this);
 		
 		userStorage = Sponge.getServiceManager().provide(UserStorageService.class).get();
-	}
-	
-	private Optional<KristAccount> findAccountByAddress(String address) {
-		return accountDatabase.getAccounts().values().stream()
-			.filter(kristAccount -> kristAccount.getDepositWallet().getAddress().equalsIgnoreCase(address))
-			.findFirst();
 	}
 	
 	private void refundDeposit(String refundAddress, int depositAmount, String refundReason) {
@@ -53,85 +48,81 @@ public class DepositManager {
 		
 		masterWallet.transfer(refundAddress, depositAmount, "error=" + refundReason);
 	}
-	
-	private void handleDeposit(KristAccount account,
+
+	/** Credits the account with the given deposit amount, adds an entry to the transaction log, and notifies the
+	 * user if they are online. **/
+	public void handleDeposit(KristAccount account,
 							   KristTransaction fromTx,
 							   Map<String, String> meta,
 							   int depositAmount) {
-		Wallet depositWallet = account.getDepositWallet();
-		if (depositWallet == null) return;
-		
 		String fromAddress = fromTx != null ? fromTx.from : null;
-		
-		depositWallet.transfer(masterWallet.getAddress(), depositAmount, null).handle((tx, ex) -> {
-			account.deposit(
-				KristPay.INSTANCE.getCurrency(),
-				BigDecimal.valueOf(depositAmount),
-				Cause.of(EventContext.empty(), this)
-			);
-			
-			if (KristPay.INSTANCE.getPrometheusManager() != null)
-				KristPay.INSTANCE.getPrometheusManager().getTransactionsReporter().incrementDeposits(depositAmount);
-			
-			new TransactionLogEntry()
-				.setSuccess(true)
-				.setType(TransactionType.DEPOSIT)
-				.setToAccount(account)
-				.setAmount(depositAmount)
-				.setMeta(meta)
-				.setTransaction(fromTx)
-				.addAsync();
-			
-			Optional<Player> playerOptional = Sponge.getServer().getPlayer(UUID.fromString(account.getOwner()));
-			
-			// notify player of their deposit if they are online
-			if (playerOptional.isPresent()) {
-				Player player = playerOptional.get();
-				if (!player.isOnline()) return tx;
-				
-				Text.Builder builder = Text.builder()
-					.append(CommandHelpers.formatKrist(depositAmount, true))
-					.append(Text.of(TextColors.GREEN, " was deposited into your account"));
-				
-				if (fromAddress != null) {
-					builder.append(Text.of(TextColors.GREEN, " from "));
-					
-					if (meta != null && meta.containsKey("return")) {
-						builder.append(CommandHelpers.formatAddress(meta.get("return")))
-							.append(Text.of(TextColors.GREEN, " ("))
-							.append(CommandHelpers.formatAddress(fromAddress))
-							.append(Text.of(TextColors.GREEN, ")"));
-					} else {
-						builder.append(CommandHelpers.formatAddress(fromAddress));
-					}
+
+		// Credit the account with the value of the transaction
+		account.deposit(
+			KristPay.INSTANCE.getCurrency(),
+			BigDecimal.valueOf(depositAmount),
+			Cause.of(EventContext.empty(), this)
+		);
+
+		if (KristPay.INSTANCE.getPrometheusManager() != null)
+			KristPay.INSTANCE.getPrometheusManager().getTransactionsReporter().incrementDeposits(depositAmount);
+
+		new TransactionLogEntry()
+			.setSuccess(true)
+			.setType(TransactionType.DEPOSIT)
+			.setToAccount(account)
+			.setAmount(depositAmount)
+			.setMeta(meta)
+			.setTransaction(fromTx)
+			.addAsync();
+
+		Optional<Player> playerOptional = Sponge.getServer().getPlayer(UUID.fromString(account.getOwner()));
+
+		// Notify player of their deposit if they are online
+		if (playerOptional.isPresent()) {
+			Player player = playerOptional.get();
+			if (!player.isOnline()) return;
+
+			Text.Builder builder = Text.builder()
+				.append(CommandHelpers.formatKrist(depositAmount, true))
+				.append(Text.of(TextColors.GREEN, " was deposited into your account"));
+
+			if (fromAddress != null) {
+				builder.append(Text.of(TextColors.GREEN, " from "));
+
+				if (meta != null && meta.containsKey("return")) {
+					builder.append(CommandHelpers.formatAddress(meta.get("return")))
+						.append(Text.of(TextColors.GREEN, " ("))
+						.append(CommandHelpers.formatAddress(fromAddress))
+						.append(Text.of(TextColors.GREEN, ")"));
+				} else {
+					builder.append(CommandHelpers.formatAddress(fromAddress));
 				}
-				
-				builder.append(Text.of(TextColors.GREEN, "."));
-				
-				if (meta != null && meta.containsKey("error")) {
-					Text error = TextSerializers.FORMATTING_CODE.deserialize(meta.get("error").replaceAll("&r", "&r&c"));
-					
-					builder.append(Text.of("\n"))
-						.append(Text.of(TextColors.DARK_RED, "Error: "))
-						.append(Text.of(TextColors.RED, error));
-				}
-				
-				if (meta != null && meta.containsKey("message")) {
-					Text message = TextSerializers.FORMATTING_CODE.deserialize(meta.get("message"));
-					
-					builder.append(Text.of("\n"))
-						.append(Text.of(TextColors.DARK_GREEN, "Message: "))
-						.append(message);
-				}
-				
-				player.sendMessage(builder.build());
-			} else {
-				account.setUnseenDeposit(account.getUnseenDeposit() + depositAmount);
-				KristPay.INSTANCE.getAccountDatabase().save();
 			}
-			
-			return tx;
-		});
+
+			builder.append(Text.of(TextColors.GREEN, "."));
+
+			if (meta != null && meta.containsKey("error")) {
+				Text error = TextSerializers.FORMATTING_CODE.deserialize(meta.get("error").replaceAll("&r", "&r&c"));
+
+				builder.append(Text.of("\n"))
+					.append(Text.of(TextColors.DARK_RED, "Error: "))
+					.append(Text.of(TextColors.RED, error));
+			}
+
+			if (meta != null && meta.containsKey("message")) {
+				Text message = TextSerializers.FORMATTING_CODE.deserialize(meta.get("message"));
+
+				builder.append(Text.of("\n"))
+					.append(Text.of(TextColors.DARK_GREEN, "Message: "))
+					.append(message);
+			}
+
+			player.sendMessage(builder.build());
+		} else {
+			account.setUnseenDeposit(account.getUnseenDeposit() + depositAmount);
+			KristPay.INSTANCE.getAccountDatabase().save();
+		}
 	}
 	
 	public void handleTransaction(KristTransaction transaction) {
@@ -141,9 +132,13 @@ public class DepositManager {
 			&& transaction.metadata != null
 			&& !transaction.metadata.isEmpty()
 			&& !Objects.equals(transaction.metadata, "null")) {
+			// Transaction to the master wallet and had the name `switchcraft.kst`, find the account to deposit to and
+			// handle the transaction
 			handleNameTransaction(transaction);
 		} else {
-			findAccountByAddress(address).ifPresent(account -> handleDeposit(account, transaction, null, transaction.value));
+			// See if the transaction was to any of the mining deposit addresses, and if so, tell the user their
+			// transaction will be handled soon.
+			miningManager.handleMiningDeposit(address, transaction.value);
 		}
 
 		masterWallet.syncWithNode(cb -> {});
@@ -160,7 +155,7 @@ public class DepositManager {
 		}
 		Map<String, String> commonMeta = commonMetaOpt.get();
 
-		// If a return address is specified, send back to that. This should stop infinite transaction loops occuring
+		// If a return address is specified, send back to that. This should stop infinite transaction loops occurring
 		// when someone uses KristPay on a different server to send Krist to a username which doesn't exist.
 		if (commonMeta.containsKey("return")) {
 			if (commonMeta.get("return").matches(CommandPay.KRIST_TRANSFER_PATTERN)) {
@@ -206,15 +201,5 @@ public class DepositManager {
 		}
 		
 		handleDeposit((KristAccount) account, transaction, commonMeta, amount);
-	}
-	
-	public void walletSynced(KristAccount account) {
-		Wallet depositWallet = account.getDepositWallet();
-		if (depositWallet == null) return;
-		
-		int depositAmount = depositWallet.getBalance();
-		if (depositAmount <= 0) return;
-		
-		handleDeposit(account, null, null, depositAmount);
 	}
 }

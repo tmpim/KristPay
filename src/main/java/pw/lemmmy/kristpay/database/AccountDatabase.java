@@ -123,13 +123,4 @@ public class AccountDatabase {
 			.name("KristPay - Saving database")
 			.submit(KristPay.INSTANCE);
 	}
-	
-	public void syncWallets() {
-		KristPay.INSTANCE.getLogger().info("Syncing wallets.");
-		
-		accounts.forEach((uuid, kristAccount) -> kristAccount.getDepositWallet().syncWithNode(success -> {
-			if (KristPay.INSTANCE.getDepositManager() != null)
-				KristPay.INSTANCE.getDepositManager().walletSynced(kristAccount);
-		}));
-	}
 }

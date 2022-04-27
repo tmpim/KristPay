@@ -12,7 +12,4 @@ public class ConfigDatabase {
 	
 	@Setting
 	private int saveInterval = 30;
-	
-	@Setting
-	private int legacyWalletSyncInterval = 600;
 }
